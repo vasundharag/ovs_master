@@ -38,6 +38,7 @@
 #define OPENFLOW_15_H 1
 
 #include <openflow/openflow-common.h>
+#include <openflow/openflow-1.4.h> 
 
 /* Body for ofp15_multipart_request of type OFPMP_PORT_DESC. */
 struct ofp15_port_desc_request {
@@ -148,5 +149,24 @@ struct ofp15_group_desc_stats {
      *     length in header.length. */
 };
 OFP_ASSERT(sizeof(struct ofp15_group_desc_stats) == 16);
+
+/* Send packet (controller -> datapath). */
+struct ofp15_packet_out {
+ ovs_be32 buffer_id; /* ID assigned by datapath (-1 if none). */
+ ovs_be16 actions_len; /* Size of action array in bytes. */
+ uint8_t pad[2];
+ struct ofp11_match match; 
+ /* The variable size and padded match is followed by the list of actions. */
+ /* struct ofp_action_header actions[0]; *//* Action list - 0 or more. */
+ /* The variable size action list is optionally followed by packet data.
+ * This data is only present and meaningful if buffer_id == -1. */
+ /* uint8_t data[0]; */ /* Packet data. The length is inferred
+ from the length field in the header. */
+};
+OFP_ASSERT(sizeof(struct ofp15_packet_out) == 96);
+
+
+
+
 
 #endif /* openflow/openflow-1.5.h */

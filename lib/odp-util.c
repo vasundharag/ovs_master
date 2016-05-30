@@ -120,6 +120,8 @@ odp_action_len(uint16_t type)
     case OVS_ACTION_ATTR_SET_MASKED: return ATTR_LEN_VARIABLE;
     case OVS_ACTION_ATTR_SAMPLE: return ATTR_LEN_VARIABLE;
     case OVS_ACTION_ATTR_CT: return ATTR_LEN_VARIABLE;
+    case OVS_ACTION_ATTR_PUSH_ETH: return sizeof(struct ovs_action_push_eth);
+    case OVS_ACTION_ATTR_POP_ETH: return 0;
 
     case OVS_ACTION_ATTR_UNSPEC:
     case __OVS_ACTION_ATTR_MAX:
@@ -819,6 +821,18 @@ format_odp_action(struct ds *ds, const struct nlattr *a)
         format_odp_key_attr(nl_attr_get(a), NULL, NULL, ds, true);
         ds_put_cstr(ds, ")");
         break;
+    case OVS_ACTION_ATTR_PUSH_ETH: {
+        const struct ovs_action_push_eth *eth = nl_attr_get(a);
+        ds_put_format(ds, "push_eth(src="ETH_ADDR_FMT",dst="ETH_ADDR_FMT
+                      ",type=0x%04"PRIx16")",
+                      ETH_ADDR_ARGS(eth->addresses.eth_src),
+                      ETH_ADDR_ARGS(eth->addresses.eth_dst),
+                      ntohs(eth->eth_type));
+        break;
+    }
+    case OVS_ACTION_ATTR_POP_ETH:
+        ds_put_cstr(ds, "pop_eth");
+        break;
     case OVS_ACTION_ATTR_PUSH_VLAN: {
         const struct ovs_action_push_vlan *vlan = nl_attr_get(a);
         ds_put_cstr(ds, "push_vlan(");
@@ -1003,14 +1017,43 @@ parse_odp_userspace_action(const char *s, struct ofpbuf *actions)
             odp_put_userspace_action(pid, user_data, user_data_size,
                                      tunnel_out_port, include_actions, actions);
             res = n + n1;
+            goto out;
         } else if (s[n] == ')') {
             odp_put_userspace_action(pid, user_data, user_data_size,
                                      ODPP_NONE, include_actions, actions);
             res = n + 1;
-        } else {
-            res = -EINVAL;
+            goto out;
         }
     }
+
+    {
+        struct ovs_action_push_eth push;
+        int eth_type = 0;
+        int n1 = -1;
+
+        if (ovs_scan(&s[n], "push_eth(src="ETH_ADDR_SCAN_FMT","
+                     "dst="ETH_ADDR_SCAN_FMT",type=%i)%n",
+                     ETH_ADDR_SCAN_ARGS(push.addresses.eth_src),
+                     ETH_ADDR_SCAN_ARGS(push.addresses.eth_dst),
+                     &eth_type, &n1)) {
+
+            push.eth_type = htons(eth_type);
+
+            nl_msg_put_unspec(actions, OVS_ACTION_ATTR_PUSH_ETH,
+                              &push, sizeof push);
+
+            res = n + n1;
+            goto out;
+        }
+    }
+
+    if (!strncmp(&s[n], "pop_eth", 7)) {
+        nl_msg_put_flag(actions, OVS_ACTION_ATTR_POP_ETH);
+        res = 7;
+        goto out;
+    }
+
+    res = -EINVAL;
 out:
     ofpbuf_uninit(&buf);
     return res;
@@ -4331,6 +4374,8 @@ odp_flow_key_from_flow__(const struct odp_flow_key_parms *parms,
         }
 
         nl_msg_put_be16(buf, OVS_KEY_ATTR_ETHERTYPE, data->dl_type);
+    } else {
+        nl_msg_put_be16(buf, OVS_KEY_ATTR_PACKET_ETHERTYPE, data->dl_type);
     }
 
     if (flow->dl_type == htons(ETH_TYPE_IP)) {
@@ -4582,12 +4627,13 @@ odp_key_to_pkt_metadata(const struct nlattr *key, size_t key_len,
             md->base_layer = LAYER_2;
             wanted_attrs &= ~(1u << OVS_KEY_ATTR_ETHERNET);
             break;
+        case OVS_KEY_ATTR_PACKET_ETHERTYPE:
+            md->packet_ethertype = nl_attr_get_be16(nla);
+            break;
         case OVS_KEY_ATTR_IPV4:
-            md->packet_ethertype = htons(ETH_TYPE_IP);
             wanted_attrs &= ~(1u << OVS_KEY_ATTR_IPV4);
             break;
         case OVS_KEY_ATTR_IPV6:
-            md->packet_ethertype = htons(ETH_TYPE_IPV6);
             wanted_attrs &= ~(1u << OVS_KEY_ATTR_IPV6);
             break;
         default:
@@ -4740,6 +4786,29 @@ check_expectations(uint64_t present_attrs, int out_of_range_attr,
 }
 
 static bool
+parse_ethertype__(const struct nlattr *attrs[OVS_KEY_ATTR_MAX + 1],
+                  uint64_t *expected_attrs, struct flow *flow,
+                  const struct flow *src_flow, unsigned attr_idx, bool is_mask)
+{
+    static struct vlog_rate_limit rl = VLOG_RATE_LIMIT_INIT(1, 5);
+
+    flow->dl_type = nl_attr_get_be16(attrs[attr_idx]);
+
+    if (!is_mask && ntohs(flow->dl_type) < ETH_TYPE_MIN) {
+        VLOG_ERR_RL(&rl, "invalid Ethertype %"PRIu16" in flow key",
+                    ntohs(flow->dl_type));
+        return false;
+    }
+    if (is_mask && (!src_flow || ntohs(src_flow->dl_type) < ETH_TYPE_MIN) &&
+        flow->dl_type != htons(0xffff)) {
+        return false;
+    }
+    *expected_attrs |= UINT64_C(1) << attr_idx;
+
+    return true;
+}
+
+static bool
 parse_ethertype(const struct nlattr *attrs[OVS_KEY_ATTR_MAX + 1],
                 uint64_t present_attrs, uint64_t *expected_attrs,
                 struct flow *flow, const struct flow *src_flow)
@@ -4748,17 +4817,11 @@ parse_ethertype(const struct nlattr *attrs[OVS_KEY_ATTR_MAX + 1],
     bool is_mask = flow != src_flow;
 
     if (present_attrs & (UINT64_C(1) << OVS_KEY_ATTR_ETHERTYPE)) {
-        flow->dl_type = nl_attr_get_be16(attrs[OVS_KEY_ATTR_ETHERTYPE]);
-        if (!is_mask && ntohs(flow->dl_type) < ETH_TYPE_MIN) {
-            VLOG_ERR_RL(&rl, "invalid Ethertype %"PRIu16" in flow key",
-                        ntohs(flow->dl_type));
-            return false;
-        }
-        if (is_mask && ntohs(src_flow->dl_type) < ETH_TYPE_MIN &&
-            flow->dl_type != htons(0xffff)) {
-            return false;
-        }
-        *expected_attrs |= UINT64_C(1) << OVS_KEY_ATTR_ETHERTYPE;
+        return parse_ethertype__(attrs, expected_attrs, flow, src_flow,
+                                 OVS_KEY_ATTR_ETHERTYPE, is_mask);
+    } else if (present_attrs & (UINT64_C(1) << OVS_KEY_ATTR_PACKET_ETHERTYPE)) {
+        return parse_ethertype__(attrs, expected_attrs, flow, src_flow,
+                                 OVS_KEY_ATTR_PACKET_ETHERTYPE, is_mask);
     } else {
         if (!is_mask) {
             if (present_attrs & (UINT64_C(1) << OVS_KEY_ATTR_IPV4)) {
@@ -4768,6 +4831,8 @@ parse_ethertype(const struct nlattr *attrs[OVS_KEY_ATTR_MAX + 1],
             } else {
                 flow->dl_type = htons(FLOW_DL_TYPE_NONE);
             }
+        } else if (src_flow->base_layer == LAYER_3) {
+            flow->dl_type = htons(0xffff);
         } else if (ntohs(src_flow->dl_type) < ETH_TYPE_MIN) {
             /* See comments in odp_flow_key_from_flow__(). */
             VLOG_ERR_RL(&rl, "mask expected for non-Ethernet II frame");
@@ -5197,7 +5262,10 @@ odp_flow_key_to_flow__(const struct nlattr *key, size_t key_len,
         put_ethernet_key(eth_key, flow);
         flow->base_layer = LAYER_2;
         expected_attrs |= UINT64_C(1) << OVS_KEY_ATTR_ETHERNET;
-    } else {
+    } else if (present_attrs & (UINT64_C(1) << OVS_KEY_ATTR_PACKET_ETHERTYPE)) {
+        flow->base_layer = LAYER_3;
+        expected_attrs |= UINT64_C(1) << OVS_KEY_ATTR_PACKET_ETHERTYPE;
+    } else if (is_mask && src_flow->base_layer == LAYER_3) {
         flow->base_layer = LAYER_3;
     }
 
@@ -5373,6 +5441,28 @@ odp_put_userspace_action(uint32_t pid,
     nl_msg_end_nested(odp_actions, offset);
 
     return userdata_ofs;
+}
+
+void
+odp_put_pop_eth_action(struct ofpbuf *odp_actions)
+{
+    nl_msg_put_flag(odp_actions, OVS_ACTION_ATTR_POP_ETH);
+}
+
+void
+odp_put_push_eth_action(struct ofpbuf *odp_actions,
+                        const struct eth_addr *eth_src,
+                        const struct eth_addr *eth_dst,
+                        const ovs_be16 eth_type)
+{
+    struct ovs_action_push_eth eth;
+
+    eth.addresses.eth_src = *eth_src;
+    eth.addresses.eth_dst = *eth_dst;
+    eth.eth_type = eth_type;
+
+    nl_msg_put_unspec(odp_actions, OVS_ACTION_ATTR_PUSH_ETH,
+                      &eth, sizeof eth);
 }
 
 void
