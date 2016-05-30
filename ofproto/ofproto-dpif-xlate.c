@@ -1098,7 +1098,7 @@ xlate_ofport_set(struct ofproto_dpif *ofproto, struct ofbundle *ofbundle,
                  const struct ofproto_port_queue *qdscp_list, size_t n_qdscp,
                  enum ofputil_port_config config,
                  enum ofputil_port_state state, bool is_tunnel,
-                 bool may_enable)
+                 bool may_enable, bool is_layer3)
 {
     size_t i;
     struct xport *xport;
@@ -2996,7 +2996,7 @@ compose_output_action__(struct xlate_ctx *ctx, ofp_port_t ofp_port,
 
     /* If 'struct flow' gets additional metadata, we'll need to zero it out
      * before traversing a patch port. */
-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 35);
+    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 37);
     memset(&flow_tnl, 0, sizeof flow_tnl);
 
     if (!xport) {
