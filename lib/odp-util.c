@@ -4335,6 +4335,12 @@ odp_flow_key_from_flow__(const struct odp_flow_key_parms *parms,
         nl_msg_put_odp_port(buf, OVS_KEY_ATTR_IN_PORT, parms->odp_in_port);
     }
 
+    if ((flow->packet_type == PACKET_IPV4)
+        || (flow->packet_type == PACKET_IPV6)) {
+        goto noethernet;
+    }
+
+
     if (flow->base_layer == LAYER_2) {
         eth_key = nl_msg_put_unspec_uninit(buf, OVS_KEY_ATTR_ETHERNET,
                                            sizeof *eth_key);
@@ -4377,6 +4383,8 @@ odp_flow_key_from_flow__(const struct odp_flow_key_parms *parms,
     } else {
         nl_msg_put_be16(buf, OVS_KEY_ATTR_PACKET_ETHERTYPE, data->dl_type);
     }
+
+noethernet:
 
     if (flow->dl_type == htons(ETH_TYPE_IP)) {
         struct ovs_key_ipv4 *ipv4_key;

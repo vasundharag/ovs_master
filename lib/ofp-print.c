@@ -244,7 +244,16 @@ ofp_print_packet_out(struct ds *string, const struct ofp_header *oh,
     }
 
     ds_put_cstr(string, " in_port=");
-    ofputil_format_port(po.in_port, string);
+    ofputil_format_port(po.flow_metadata.in_port, string);
+
+    if (po.flow_metadata.tun_id != htonll(0)) {
+        ds_put_format(string, " tun_id=0x%"PRIx64, ntohll(po.flow_metadata.tun_id));
+    }
+
+    if (po.flow_metadata.metadata != htonll(0)) {
+        ds_put_format(string, " metadata=0x%"PRIx64, ntohll(po.flow_metadatad.metadata));
+    }
+
 
     ds_put_cstr(string, " actions=");
     ofpacts_format(po.ofpacts, po.ofpacts_len, string);

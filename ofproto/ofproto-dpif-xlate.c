@@ -2996,7 +2996,7 @@ compose_output_action__(struct xlate_ctx *ctx, ofp_port_t ofp_port,
 
     /* If 'struct flow' gets additional metadata, we'll need to zero it out
      * before traversing a patch port. */
-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 37);
+    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 38);
     memset(&flow_tnl, 0, sizeof flow_tnl);
 
     if (!xport) {
@@ -3030,6 +3030,14 @@ compose_output_action__(struct xlate_ctx *ctx, ofp_port_t ofp_port,
             return;
         }
     }
+
+    if ((flow->packet_type == PACKET_IPV4 || flow->packet_type == PACKET_IPV6) && !xport->is_layer3) 
+    {
+        flow->packet_type = PACKET_ETH;
+        odp_put_push_eth_action(ctx->xout->odp_actions, flow->dl_src,
+                                flow->dl_dst, flow->dl_type);
+    }
+
 
     if (xport->peer) {
         const struct xport *peer = xport->peer;

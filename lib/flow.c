@@ -124,7 +124,7 @@ struct mf_ctx {
  * away.  Some GCC versions gave warnings on ALWAYS_INLINE, so these are
  * defined as macros. */
 
-#if (FLOW_WC_SEQ != 37)
+#if (FLOW_WC_SEQ != 38)
 #define MINIFLOW_ASSERT(X) ovs_assert(X)
 BUILD_MESSAGE("FLOW_WC_SEQ changed: miniflow_extract() will have runtime "
                "assertions enabled. Consider updating FLOW_WC_SEQ after "
@@ -538,7 +538,7 @@ miniflow_extract(struct dp_packet *packet, struct miniflow *dst)
     if (!is_l3) {
         /* No need to store a zero value for base_layer in the miniflow
          * which would cost an extra word of storage. */
-        BUILD_ASSERT(LAYER_2 == 0);
+        BUILD_ASSERT(PACKET_ETH == 0);
 
         /* Must have full Ethernet header to proceed. */
         if (OVS_UNLIKELY(size < sizeof(struct eth_header))) {
@@ -557,9 +557,16 @@ miniflow_extract(struct dp_packet *packet, struct miniflow *dst)
         }
     } else {
         packet->l3_ofs = 0;
-        miniflow_pad_from_64(mf, base_layer);
-        miniflow_push_uint8(mf, base_layer, LAYER_3);
-        miniflow_pad_to_64(mf, base_layer);
+        miniflow_pad_from_64(mf, packet_type); //base_layer);
+        //miniflow_push_uint8(mf, packet_type, PACKET_IPV4); //base_layer, LAYER_3);
+
+	if (dl_type == htons(ETH_TYPE_IPV6)) {
+            miniflow_push_uint32(mf, packet_type, PACKET_IPV6);
+        } else {
+            miniflow_push_uint32(mf, packet_type, PACKET_IPV4);
+        }
+ 
+        miniflow_pad_to_64(mf, packet_layer); //base_layer);
 
         dl_type = packet->md.packet_ethertype;
         miniflow_pad_from_64(mf, dl_type);
@@ -831,7 +838,15 @@ miniflow_extract(struct dp_packet *packet, struct miniflow *dst)
                      * storage. */
                     BUILD_ASSERT(LAYER_2 == 0);
                 } else {
-                    miniflow_push_uint8(mf, next_base_layer, LAYER_3);
+
+                    if (dl_type == htons(ETH_TYPE_IPV6)) 
+                    {
+		            miniflow_push_uint32(mf, next_base_layer, PACKET_IPV6);
+       		    } else {
+                            miniflow_push_uint32(mf, next_base_layer, PACKET_IPV4);
+                    }
+
+                    //miniflow_push_uint8(mf, next_base_layer, LAYER_3);
                     miniflow_pad_to_64(mf, next_base_layer);
                 }
             }
@@ -873,7 +888,7 @@ flow_get_metadata(const struct flow *flow, struct match *flow_metadata)
 {
     int i;
 
-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 37);
+    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 38);
 
     match_init_catchall(flow_metadata);
     if (flow->tunnel.tun_id != htonll(0)) {
@@ -1279,7 +1294,7 @@ void flow_wildcards_init_for_packet(struct flow_wildcards *wc,
     memset(&wc->masks, 0x0, sizeof wc->masks);
 
     /* Update this function whenever struct flow changes. */
-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 37);
+    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 38);
 
     if (flow_tnl_dst_is_set(&flow->tunnel)) {
         if (flow->tunnel.flags & FLOW_TNL_F_KEY) {
@@ -1326,7 +1341,8 @@ void flow_wildcards_init_for_packet(struct flow_wildcards *wc,
 
     /* actset_output wildcarded. */
 
-    if (flow->base_layer == LAYER_2) {
+    //if (flow->base_layer == LAYER_2) {
+    if (flow->packet_type == PACKET_ETH){
         WC_MASK_FIELD(wc, dl_dst);
         WC_MASK_FIELD(wc, dl_src);
         WC_MASK_FIELD(wc, vlan_tci);
@@ -1399,7 +1415,7 @@ void
 flow_wc_map(const struct flow *flow, struct flowmap *map)
 {
     /* Update this function whenever struct flow changes. */
-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 37);
+    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 38);
 
     flowmap_init(map);
 
@@ -1428,7 +1444,8 @@ flow_wc_map(const struct flow *flow, struct flowmap *map)
     FLOWMAP_SET(map, ct_mark);
     FLOWMAP_SET(map, ct_label);
 
-    if (flow->base_layer == LAYER_2) {
+   // if (flow->base_layer == LAYER_2) {
+   if (flow->packet_type == PACKET_ETH){
         FLOWMAP_SET(map, dl_dst);
         FLOWMAP_SET(map, dl_src);
         FLOWMAP_SET(map, vlan_tci);
@@ -1490,13 +1507,14 @@ void
 flow_wildcards_clear_non_packet_fields(struct flow_wildcards *wc)
 {
     /* Update this function whenever struct flow changes. */
-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 37);
+    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 38);
 
     memset(&wc->masks.metadata, 0, sizeof wc->masks.metadata);
     memset(&wc->masks.regs, 0, sizeof wc->masks.regs);
     wc->masks.actset_output = 0;
     wc->masks.conj_id = 0;
-    wc->masks.base_layer = 0;
+  //wc->masks.base_layer = 0;
+    wc->masks.packet_type = 0;
 }
 
 /* Returns true if 'wc' matches every packet, false if 'wc' fixes any bits or
@@ -1626,7 +1644,7 @@ flow_wildcards_set_xreg_mask(struct flow_wildcards *wc, int idx, uint64_t mask)
 uint32_t
 miniflow_hash_5tuple(const struct miniflow *flow, uint32_t basis)
 {
-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 37);
+    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 38);
     uint32_t hash = basis;
 
     if (flow) {
@@ -1673,7 +1691,7 @@ ASSERT_SEQUENTIAL(ipv6_src, ipv6_dst);
 uint32_t
 flow_hash_5tuple(const struct flow *flow, uint32_t basis)
 {
-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 37);
+    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 38);
     uint32_t hash = basis;
 
     if (flow) {
@@ -2140,7 +2158,7 @@ flow_push_mpls(struct flow *flow, int n, ovs_be16 mpls_eth_type,
         flow->mpls_lse[0] = set_mpls_lse_values(ttl, tc, 1, htonl(label));
 
         /* Clear all L3 and L4 fields and dp_hash. */
-        BUILD_ASSERT(FLOW_WC_SEQ == 37);
+        BUILD_ASSERT(FLOW_WC_SEQ == 38);
         memset((char *) flow + FLOW_SEGMENT_2_ENDS_AT, 0,
                sizeof(struct flow) - FLOW_SEGMENT_2_ENDS_AT);
         flow->dp_hash = 0;

@@ -101,7 +101,7 @@ ofputil_netmask_to_wcbits(ovs_be32 netmask)
 void
 ofputil_wildcard_from_ofpfw10(uint32_t ofpfw, struct flow_wildcards *wc)
 {
-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 37);
+    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 38);
 
     /* Initialize most of wc. */
     flow_wildcards_init_catchall(wc);
@@ -3761,6 +3761,9 @@ ofputil_encode_nx_packet_in(const struct ofputil_packet_in *pin,
     struct nx_packet_in *npi;
     struct ofpbuf *msg;
     size_t match_len;
+    struct match match;
+
+    //ofputil_fmd_to_match(&(pin->flow_metadata), &match);
 
     /* The final argument is just an estimate of the space required. */
     msg = ofpraw_alloc_xid(OFPRAW_NXT_PACKET_IN, version,
@@ -4176,12 +4179,42 @@ ofputil_decode_packet_out(struct ofputil_packet_out *po,
     enum ofpraw raw = ofpraw_pull_assert(&b);
 
     ofpbuf_clear(ofpacts);
-    if (raw == OFPRAW_OFPT11_PACKET_OUT) {
+
+    if (raw == OFPRAW_OFPT15_PACKET_OUT) {
+        enum ofperr error;
+        const struct ofp15_packet_out *opo = ofpbuf_pull(&b, sizeof *opo);
+        struct match match;
+
+        po->buffer_id = ntohl(opo->buffer_id);
+
+        error = oxm_pull_match_loose(&b, &match);
+        if (error) {
+            return error;
+        }
+        error = ofpacts_pull_openflow_actions(&b, ntohs(opo->actions_len),
+                                              oh->version, ofpacts);
+        if (error) {
+            return error;
+        }
+       // ofputil_match_to_fmd(&match, &(po->flow_metadata));
+
+        /* We only support Ethernet, IPv4 and IPv6 packets. */
+        switch (po->flow_metadata.packet_type) {
+        case PACKET_ETH:
+        case PACKET_IPV4:
+        case PACKET_IPV6:
+            break;
+
+        default:
+            return OFPERR_OFPBRC_BAD_PACKET;
+        }
+    }	
+    else if (raw == OFPRAW_OFPT11_PACKET_OUT) {
         enum ofperr error;
         const struct ofp11_packet_out *opo = ofpbuf_pull(&b, sizeof *opo);
 
         po->buffer_id = ntohl(opo->buffer_id);
-        error = ofputil_port_from_ofp11(opo->in_port, &po->in_port);
+        error = ofputil_port_from_ofp11(opo->in_port, &po->flow_metadata.in_port);
         if (error) {
             return error;
         }
@@ -4196,7 +4229,7 @@ ofputil_decode_packet_out(struct ofputil_packet_out *po,
         const struct ofp10_packet_out *opo = ofpbuf_pull(&b, sizeof *opo);
 
         po->buffer_id = ntohl(opo->buffer_id);
-        po->in_port = u16_to_ofp(ntohs(opo->in_port));
+        po->flow_metadata.in_port = u16_to_ofp(ntohs(opo->in_port));
 
         error = ofpacts_pull_openflow_actions(&b, ntohs(opo->actions_len),
                                               oh->version, ofpacts);
@@ -4207,11 +4240,11 @@ ofputil_decode_packet_out(struct ofputil_packet_out *po,
         OVS_NOT_REACHED();
     }
 
-    if (ofp_to_u16(po->in_port) >= ofp_to_u16(OFPP_MAX)
-        && po->in_port != OFPP_LOCAL
-        && po->in_port != OFPP_NONE && po->in_port != OFPP_CONTROLLER) {
+    if (ofp_to_u16(po->flow_metadata.in_port) >= ofp_to_u16(OFPP_MAX)
+        && po->flow_metadata.in_port != OFPP_LOCAL
+        && po->flow_metadata.in_port != OFPP_NONE && po->flow_metadata.in_port != OFPP_CONTROLLER) {
         VLOG_WARN_RL(&bad_ofmsg_rl, "packet-out has bad input port %#"PRIx16,
-                     po->in_port);
+                     po->flow_metadata.in_port);
         return OFPERR_OFPBRC_BAD_PORT;
     }
 
@@ -6856,7 +6889,7 @@ ofputil_encode_packet_out(const struct ofputil_packet_out *po,
 
         opo = msg->msg;
         opo->buffer_id = htonl(po->buffer_id);
-        opo->in_port = htons(ofp_to_u16(po->in_port));
+        opo->flow_metadata.in_port = htons(ofp_to_u16(po->flow_metadata.in_port));
         opo->actions_len = htons(msg->size - actions_ofs);
         break;
     }
@@ -6865,7 +6898,7 @@ ofputil_encode_packet_out(const struct ofputil_packet_out *po,
     case OFP12_VERSION:
     case OFP13_VERSION:
     case OFP14_VERSION:
-    case OFP15_VERSION:
+    //case OFP15_VERSION:
     case OFP16_VERSION: {
         struct ofp11_packet_out *opo;
         size_t len;
@@ -6876,10 +6909,31 @@ ofputil_encode_packet_out(const struct ofputil_packet_out *po,
                                            ofp_version);
         opo = msg->msg;
         opo->buffer_id = htonl(po->buffer_id);
-        opo->in_port = ofputil_port_to_ofp11(po->in_port);
+        opo->in_port = ofputil_port_to_ofp11(po->flow_metadata.in_port);
         opo->actions_len = htons(len);
         break;
     }
+
+    case OFP15_VERSION: {
+	struct ofp15_packet_out *opo;
+	//struct flow_metadata fmd;
+	struct match match;
+	size_t len;
+	memset((char *) &fmd, '\0', sizeof(fmd));
+	fmd.in_port = po->flow_metadata.in_port;
+	//ofputil_fmd_to_match(&fmd, &match);
+	size += sizeof(struct flow_metadata) * 2;
+	msg = ofpraw_alloc(OFPRAW_OFPT15_PACKET_OUT, ofp_version, size);
+	ofpbuf_put_zeros(msg, sizeof *opo);
+	oxm_put_match(msg, &match, ofputil_protocol_to_ofp_version(protocol));
+	len = ofpacts_put_openflow_actions(po->ofpacts, po->ofpacts_len, msg,ofp_version);
+	opo = ofpbuf_l3(msg);
+	opo->buffer_id = htonl(po->buffer_id);
+	opo->actions_len = htons(len);
+	break;
+   }
+
+
 
     default:
         OVS_NOT_REACHED();
@@ -7240,7 +7294,12 @@ ofputil_normalize_match__(struct match *match, bool may_log)
     struct flow_wildcards wc;
 
     /* Figure out what fields may be matched. */
-    if (match->flow.dl_type == htons(ETH_TYPE_IP)) {
+
+    
+
+    if (match->flow.dl_type == htons(ETH_TYPE_IP)||
+       (match->flow.packet_type == PACKET_IPV4)) 
+    {
         may_match = MAY_NW_PROTO | MAY_IPVx | MAY_NW_ADDR;
         if (match->flow.nw_proto == IPPROTO_TCP ||
             match->flow.nw_proto == IPPROTO_UDP ||
@@ -7248,7 +7307,10 @@ ofputil_normalize_match__(struct match *match, bool may_log)
             match->flow.nw_proto == IPPROTO_ICMP) {
             may_match |= MAY_TP_ADDR;
         }
-    } else if (match->flow.dl_type == htons(ETH_TYPE_IPV6)) {
+    } 
+    else if (match->flow.dl_type == htons(ETH_TYPE_IPV6)||
+	      (match->flow.packet_type == PACKET_IPV6)) 
+    {
         may_match = MAY_NW_PROTO | MAY_IPVx | MAY_IPV6;
         if (match->flow.nw_proto == IPPROTO_TCP ||
             match->flow.nw_proto == IPPROTO_UDP ||
@@ -7261,8 +7323,9 @@ ofputil_normalize_match__(struct match *match, bool may_log)
             } else if (match->flow.tp_src == htons(ND_NEIGHBOR_ADVERT)) {
                 may_match |= MAY_ND_TARGET | MAY_ARP_THA;
             }
-        }
-    } else if (match->flow.dl_type == htons(ETH_TYPE_ARP) ||
+         }
+    }
+      else if (match->flow.dl_type == htons(ETH_TYPE_ARP) ||
                match->flow.dl_type == htons(ETH_TYPE_RARP)) {
         may_match = MAY_NW_PROTO | MAY_NW_ADDR | MAY_ARP_SHA | MAY_ARP_THA;
     } else if (eth_type_mpls(match->flow.dl_type)) {

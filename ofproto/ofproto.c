@@ -1,4 +1,4 @@
-/*
+*
  * Copyright (c) 2009-2016 Nicira, Inc.
  * Copyright (c) 2010 Jean Tourrilhes - HP-Labs.
  *
@@ -3381,8 +3381,8 @@ handle_packet_out(struct ofconn *ofconn, const struct ofp_header *oh)
     if (error) {
         goto exit_free_ofpacts;
     }
-    if (ofp_to_u16(po.in_port) >= p->max_ports
-        && ofp_to_u16(po.in_port) < ofp_to_u16(OFPP_MAX)) {
+    if (ofp_to_u16(po.flow_metadata.in_port) >= p->max_ports
+        && ofp_to_u16(po.flow_metadata.in_port) < ofp_to_u16(OFPP_MAX)) {
         error = OFPERR_OFPBRC_BAD_PORT;
         goto exit_free_ofpacts;
     }
@@ -3400,7 +3400,7 @@ handle_packet_out(struct ofconn *ofconn, const struct ofp_header *oh)
 
     /* Verify actions against packet, then send packet if successful. */
     flow_extract(payload, &flow);
-    flow.in_port.ofp_port = po.in_port;
+    flow.in_port.ofp_port = po.flow_metadata.in_port;
 
     /* Check actions like for flow mods.  We pass a 'table_id' of 0 to
      * ofproto_check_consistency(), which isn't strictly correct because these
