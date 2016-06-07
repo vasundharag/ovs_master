@@ -253,7 +253,7 @@ OvsDoEncapStt(POVS_VPORT_ENTRY vport,
             (PCHAR)&fwdInfo->srcMacAddr);
     NdisMoveMemory(outerEthHdr->Destination, fwdInfo->dstMacAddr,
                     sizeof outerEthHdr->Destination + sizeof outerEthHdr->Source);
-    outerEthHdr->Type = htons(ETH_TYPE_IPV4);
+    outerEthHdr->Type = htons(ETH_TYPE_IP);
 
     /* L3 header */
     outerIpHdr->ihl = sizeof(IPHdr) >> 2;
@@ -374,7 +374,7 @@ OvsValidateTCPChecksum(PNET_BUFFER_LIST curNbl, PNET_BUFFER curNb)
     EthHdr *eth = (EthHdr *)NdisGetDataBuffer(curNb, sizeof(EthHdr),
                                               NULL, 1, 0);
 
-    if (eth->Type == ntohs(NDIS_ETH_TYPE_IPV4)) {
+    if (eth->Type == ntohs(NDIS_ETH_TYPE_IP)) {
         IPHdr *ip = (IPHdr *)((PCHAR)eth + sizeof *eth);
         UINT32 l4Payload = ntohs(ip->tot_len) - ip->ihl * 4;
         TCPHdr *tcp = (TCPHdr *)((PCHAR)ip + ip->ihl * 4);

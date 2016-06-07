@@ -35,6 +35,7 @@
 #include "openvswitch/ofpbuf.h"
 #include "packets.h"
 #include "simap.h"
+
 #include "timeval.h"
 #include "tun-metadata.h"
 #include "unaligned.h"
@@ -4341,7 +4342,7 @@ odp_flow_key_from_flow__(const struct odp_flow_key_parms *parms,
     }
 
 
-    if (flow->base_layer == LAYER_2) {
+    if (flow->packet_type == PACKET_ETH) {//base_layer == LAYER_2) {
         eth_key = nl_msg_put_unspec_uninit(buf, OVS_KEY_ATTR_ETHERNET,
                                            sizeof *eth_key);
         get_ethernet_key(data, eth_key);
@@ -4547,8 +4548,8 @@ odp_key_from_pkt_metadata(struct ofpbuf *buf, const struct pkt_metadata *md)
     if (md->in_port.odp_port != ODPP_NONE) {
         nl_msg_put_odp_port(buf, OVS_KEY_ATTR_IN_PORT, md->in_port.odp_port);
     }
-
-    if (md->base_layer == LAYER_3) {
+    
+    if (md->packet_type == PACKET_IPV6 || md->packet_type == PACKET_IPV4) {
         nl_msg_put_be16(buf, OVS_KEY_ATTR_PACKET_ETHERTYPE,
                         md->packet_ethertype);
     }
@@ -4567,8 +4568,17 @@ odp_key_to_pkt_metadata(const struct nlattr *key, size_t key_len,
         1u << OVS_KEY_ATTR_IPV4 | 1u << OVS_KEY_ATTR_IPV6;
 
     pkt_metadata_init(md, ODPP_NONE);
+   
+    /* todo 
+    if (dl_type == htons(ETH_TYPE_IPV6)) {
+       md->packet_type = PACKET_IPV6;
+    } else {
+       md->packet_type = PACKET_IPV4;
+    }*/
+    //md->base_layer = LAYER_3;
 
-    md->base_layer = LAYER_3;
+     md->packet_type = PACKET_IPV4;
+
 
     NL_ATTR_FOR_EACH (nla, left, key, key_len) {
         uint16_t type = nl_attr_type(nla);
@@ -4632,7 +4642,18 @@ odp_key_to_pkt_metadata(const struct nlattr *key, size_t key_len,
             wanted_attrs &= ~(1u << OVS_KEY_ATTR_IN_PORT);
             break;
         case OVS_KEY_ATTR_ETHERNET:
-            md->base_layer = LAYER_2;
+	    /*
+            if (dl_type == htons(ETH_TYPE_IPV6)) 
+            {
+                 md->packet_type =  PACKET_IPV6;
+            } 
+            else 
+            {
+                 md->packet_type = PACKET_IPV4;
+	    }	
+	    */
+            md->packet_type =  PACKET_ETH;
+
             wanted_attrs &= ~(1u << OVS_KEY_ATTR_ETHERNET);
             break;
         case OVS_KEY_ATTR_PACKET_ETHERTYPE:
@@ -4839,7 +4860,8 @@ parse_ethertype(const struct nlattr *attrs[OVS_KEY_ATTR_MAX + 1],
             } else {
                 flow->dl_type = htons(FLOW_DL_TYPE_NONE);
             }
-        } else if (src_flow->base_layer == LAYER_3) {
+        } else if (src_flow->dl_type == htons(ETH_TYPE_IPV6)||src_flow->dl_type == htons(ETH_TYPE_IP))
+        {
             flow->dl_type = htons(0xffff);
         } else if (ntohs(src_flow->dl_type) < ETH_TYPE_MIN) {
             /* See comments in odp_flow_key_from_flow__(). */
@@ -5268,14 +5290,30 @@ odp_flow_key_to_flow__(const struct nlattr *key, size_t key_len,
 
         eth_key = nl_attr_get(attrs[OVS_KEY_ATTR_ETHERNET]);
         put_ethernet_key(eth_key, flow);
-        flow->base_layer = LAYER_2;
+        //flow->base_layer = LAYER_2;
+        flow->packet_type = PACKET_ETH;
         expected_attrs |= UINT64_C(1) << OVS_KEY_ATTR_ETHERNET;
     } else if (present_attrs & (UINT64_C(1) << OVS_KEY_ATTR_PACKET_ETHERTYPE)) {
-        flow->base_layer = LAYER_3;
+        //flow->base_layer = LAYER_3;
+
+        if (src_flow->dl_type == htons(ETH_TYPE_IPV6))
+	{
+		flow->packet_type = PACKET_IPV6;	
+	} 
+	else 
+	{
+		flow->packet_type = PACKET_IPV4;
+	}     
+
         expected_attrs |= UINT64_C(1) << OVS_KEY_ATTR_PACKET_ETHERTYPE;
-    } else if (is_mask && src_flow->base_layer == LAYER_3) {
-        flow->base_layer = LAYER_3;
+    } else if (is_mask && src_flow->dl_type == htons(ETH_TYPE_IPV6)){    //src_flow->base_layer == LAYER_3) {
+                // flow->base_layer = LAYER_3;
+	        flow->packet_type = PACKET_IPV6;
     }
+      else if (is_mask && src_flow->dl_type == htons(ETH_TYPE_IP)){
+                   flow->packet_type = PACKET_IPV4;
+    }
+
 
     /* Get Ethertype or 802.1Q TPID or FLOW_DL_TYPE_NONE. */
     if (!parse_ethertype(attrs, present_attrs, &expected_attrs, flow,
@@ -5597,7 +5635,8 @@ commit_set_ether_addr_action(const struct flow *flow, struct flow *base_flow,
     /* If we have a L3 --> L2 flow, the push_eth action takes care of setting
      * the appropriate MAC source and destination addresses, no need to add a
      * set action. */
-    if (base_flow->base_layer == LAYER_3 && flow->base_layer == LAYER_2) {
+    if (base_flow->packet_type == PACKET_ETH && ((flow->packet_type == PACKET_IPV4)|| 
+       (flow->packet_type == PACKET_IPV6))) {   //(base_flow->base_layer == LAYER_3 && flow->base_layer == LAYER_2) {
         return;
     }
 

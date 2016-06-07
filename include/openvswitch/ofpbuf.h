@@ -133,6 +133,7 @@ static inline void *ofpbuf_at_assert(const struct ofpbuf *, size_t offset,
 static inline void *ofpbuf_tail(const struct ofpbuf *);
 static inline void *ofpbuf_end(const struct ofpbuf *);
 
+
 void *ofpbuf_put_uninit(struct ofpbuf *, size_t);
 void *ofpbuf_put_zeros(struct ofpbuf *, size_t);
 void *ofpbuf_put(struct ofpbuf *, const void *, size_t);
@@ -269,6 +270,9 @@ static inline bool ofpbuf_equal(const struct ofpbuf *a, const struct ofpbuf *b)
     return a->size == b->size &&
            memcmp(a->data, b->data, a->size) == 0;
 }
+
+
+
 
 #ifdef  __cplusplus
 }

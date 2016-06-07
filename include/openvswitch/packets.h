@@ -45,7 +45,8 @@ struct flow_tnl {
 #define FLOW_TNL_F_OAM (1 << 0)
 
 #define FLOW_TNL_PUB_F_MASK ((1 << 1) - 1)
-
+#define ETH_TYPE_IPV6          0x86dd
+#define ETH_TYPE_IPV	       0x0800
 /* Private flags */
 #define FLOW_TNL_F_DONT_FRAGMENT (1 << 1)
 #define FLOW_TNL_F_CSUM (1 << 2)

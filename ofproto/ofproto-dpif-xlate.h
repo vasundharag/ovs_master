@@ -42,6 +42,8 @@ struct xlate_out {
 
     struct recirc_refs recircs; /* Recirc action IDs on which references are
                                  * held. */
+    struct ofpbuf *odp_actions; 
+   
 };
 
 struct xlate_in {

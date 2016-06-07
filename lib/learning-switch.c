@@ -562,7 +562,7 @@ process_packet_in(struct lswitch *sw, const struct ofp_header *oh)
 
     /* Prepare packet_out in case we need one. */
 
-    memset(&(po.match), 0, sizeof(struct match));
+    memset(&(po.flow_metadata), 0, sizeof(struct match));
 
     po.buffer_id = buffer_id;
     if (buffer_id == UINT32_MAX) {
@@ -572,7 +572,7 @@ process_packet_in(struct lswitch *sw, const struct ofp_header *oh)
         po.packet = NULL;
         po.packet_len = 0;
     }
-    po.match.flow.in_port = pi.match.flow.in_port.ofp_port;
+    po.flow_metadata.flow.in_port.ofp_port = pi.flow_metadata.flow.in_port.ofp_port;
     po.ofpacts = ofpacts.data;
     po.ofpacts_len = ofpacts.size;
 

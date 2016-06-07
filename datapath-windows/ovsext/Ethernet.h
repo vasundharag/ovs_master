@@ -58,7 +58,7 @@ typedef enum {
 
 /* DIX type fields we care about */
 typedef enum {
-    ETH_TYPE_IPV4        = 0x0800,
+    ETH_TYPE_IP          = 0x0800,
     ETH_TYPE_IPV6        = 0x86DD,
     ETH_TYPE_ARP         = 0x0806,
     ETH_TYPE_RARP        = 0x8035,

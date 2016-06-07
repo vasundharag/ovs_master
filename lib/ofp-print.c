@@ -244,14 +244,14 @@ ofp_print_packet_out(struct ds *string, const struct ofp_header *oh,
     }
 
     ds_put_cstr(string, " in_port=");
-    ofputil_format_port(po.flow_metadata.in_port, string);
+    ofputil_format_port(po.flow_metadata.flow.in_port.ofp_port, string);
 
-    if (po.flow_metadata.tun_id != htonll(0)) {
-        ds_put_format(string, " tun_id=0x%"PRIx64, ntohll(po.flow_metadata.tun_id));
+    if (po.flow_metadata.flow.tunnel.tun_id != htonll(0)) {
+        ds_put_format(string, " tun_id=0x%"PRIx64, ntohll(po.flow_metadata.flow.tunnel.tun_id));
     }
 
-    if (po.flow_metadata.metadata != htonll(0)) {
-        ds_put_format(string, " metadata=0x%"PRIx64, ntohll(po.flow_metadatad.metadata));
+    if (po.flow_metadata.flow.metadata != htonll(0)) {
+        ds_put_format(string, " metadata=0x%"PRIx64, ntohll(po.flow_metadata.flow.metadata));
     }
 
 

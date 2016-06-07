@@ -200,7 +200,7 @@ OvsDetectCtPacket(OvsFlowKey *key)
 {
     /* Currently we support only Unfragmented TCP packets */
     switch (ntohs(key->l2.dlType)) {
-    case ETH_TYPE_IPV4:
+    case ETH_TYPE_IP:
         if (key->ipKey.nwFrag != OVS_FRAG_TYPE_NONE) {
             return NDIS_STATUS_NOT_SUPPORTED;
         }
@@ -275,7 +275,7 @@ OvsCtSetupLookupCtx(OvsFlowKey *flowKey,
     ctx->key.zone = zone;
     ctx->key.dl_type = flowKey->l2.dlType;
 
-    if (flowKey->l2.dlType == htons(ETH_TYPE_IPV4)) {
+    if (flowKey->l2.dlType == htons(ETH_TYPE_IP)) {
         ctx->key.src.addr.ipv4 = flowKey->ipKey.nwSrc;
         ctx->key.dst.addr.ipv4 = flowKey->ipKey.nwDst;
         ctx->key.nw_proto = flowKey->ipKey.nwProto;

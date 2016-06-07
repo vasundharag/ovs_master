@@ -218,7 +218,7 @@ OvsDoEncapGre(POVS_VPORT_ENTRY vport,
                (PCHAR)&fwdInfo->srcMacAddr);
         NdisMoveMemory(ethHdr->Destination, fwdInfo->dstMacAddr,
                        sizeof ethHdr->Destination + sizeof ethHdr->Source);
-        ethHdr->Type = htons(ETH_TYPE_IPV4);
+        ethHdr->Type = htons(ETH_TYPE_IP);
 #if DBG
         counterHeadRoom -= sizeof *ethHdr;
 #endif

@@ -928,7 +928,7 @@ MapFlowKeyToNlKey(PNL_BUFFER nlBuf,
 
     /* ==== L3 + L4 ==== */
     switch (ntohs(flowKey->l2.dlType)) {
-        case ETH_TYPE_IPV4: {
+        case ETH_TYPE_IP: {
         IpKey *ipv4FlowPutKey = &(flowKey->ipKey);
         rc = _MapFlowIpv4KeyToNlKey(nlBuf, ipv4FlowPutKey);
         break;
@@ -1469,7 +1469,7 @@ _MapKeyAttrToFlowPut(PNL_ATTR *keyAttrs,
                          - destKey->l2.offset;
 
     switch (ntohs(destKey->l2.dlType)) {
-    case ETH_TYPE_IPV4: {
+    case ETH_TYPE_IP: {
 
         if (keyAttrs[OVS_KEY_ATTR_IPV4]) {
             const struct ovs_key_ipv4 *ipv4Key;
@@ -1961,7 +1961,7 @@ OvsExtractFlow(const NET_BUFFER_LIST *packet,
 
     flow->l2.keyLen = OVS_WIN_TUNNEL_KEY_SIZE + OVS_L2_KEY_SIZE - flow->l2.offset;
     /* Network layer. */
-    if (flow->l2.dlType == htons(ETH_TYPE_IPV4)) {
+    if (flow->l2.dlType == htons(ETH_TYPE_IP)) {
         struct IPHdr ip_storage;
         const struct IPHdr *nh;
         IpKey *ipKey = &flow->ipKey;
@@ -2046,7 +2046,7 @@ OvsExtractFlow(const NET_BUFFER_LIST *packet,
         flow->l2.keyLen += OVS_ARP_KEY_SIZE;
         arp = OvsGetArp(packet, layers->l3Offset, &arpStorage);
         if (arp && arp->ea_hdr.ar_hrd == htons(1) &&
-            arp->ea_hdr.ar_pro == htons(ETH_TYPE_IPV4) &&
+            arp->ea_hdr.ar_pro == htons(ETH_TYPE_IP) &&
             arp->ea_hdr.ar_hln == ETH_ADDR_LENGTH &&
             arp->ea_hdr.ar_pln == 4) {
             /* We only match on the lower 8 bits of the opcode. */

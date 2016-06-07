@@ -1966,7 +1966,7 @@ ofctl_packet_out(struct ovs_cmdl_context *ctx)
     }
 
     po.buffer_id = UINT32_MAX;
-    po.flow_metadata.in_port = str_to_port_no(ctx->argv[1], ctx->argv[2]);
+    po.flow_metadata.flow.in_port.ofp_port = str_to_port_no(ctx->argv[1], ctx->argv[2]);
     po.ofpacts = ofpacts.data;
     po.ofpacts_len = ofpacts.size;
 

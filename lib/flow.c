@@ -439,6 +439,25 @@ invalid:
     arp_buf[1] = eth_addr_zero;
 }
 
+/* Determines IP version if a layer 3 packet */
+static ovs_be16
+get_l3_eth_type(struct dp_packet *packet)
+{
+    struct ip_header *ip = dp_packet_l3(packet);
+    int ip_ver = IP_VER(ip->ip_ihl_ver);
+    switch (ip_ver) {
+    case 4:
+        return htons(ETH_TYPE_IP);
+    case 6:
+        return htons(ETH_TYPE_IPV6);
+    default:
+        return 0;
+    }
+}
+
+
+
+
 /* Initializes 'flow' members from 'packet' and 'md'.
  * Expects packet->l3_ofs to be set to 0 for layer 3 packets.
  *
@@ -557,6 +576,7 @@ miniflow_extract(struct dp_packet *packet, struct miniflow *dst)
         }
     } else {
         packet->l3_ofs = 0;
+        dl_type = get_l3_eth_type(packet);
         miniflow_pad_from_64(mf, packet_type); //base_layer);
         //miniflow_push_uint8(mf, packet_type, PACKET_IPV4); //base_layer, LAYER_3);
 
@@ -566,7 +586,7 @@ miniflow_extract(struct dp_packet *packet, struct miniflow *dst)
             miniflow_push_uint32(mf, packet_type, PACKET_IPV4);
         }
  
-        miniflow_pad_to_64(mf, packet_layer); //base_layer);
+        miniflow_pad_to_64(mf, packet_type); //base_layer);
 
         dl_type = packet->md.packet_ethertype;
         miniflow_pad_from_64(mf, dl_type);
@@ -836,7 +856,7 @@ miniflow_extract(struct dp_packet *packet, struct miniflow *dst)
                     /* No need to store a zero value for next_base_layer
                      * in the miniflow which would cost an extra word of
                      * storage. */
-                    BUILD_ASSERT(LAYER_2 == 0);
+                    BUILD_ASSERT(PACKET_ETH == 0);
                 } else {
 
                     if (dl_type == htons(ETH_TYPE_IPV6)) 
