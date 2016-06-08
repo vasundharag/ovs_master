@@ -990,6 +990,25 @@ const char *ct_state_to_string(uint32_t state)
     }
 }
 
+
+void
+flow_set_metadata(const struct match *flow_metadata, struct flow *flow)
+{
+    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 38);
+
+    flow->dp_hash = flow_metadata->flow.dp_hash;
+
+    flow->recirc_id = flow_metadata->flow.recirc_id;
+    flow->tunnel.tun_id = flow_metadata->flow.tunnel.tun_id;
+    //flow->tunnel.ip_src = flow_metadata->flow.tunnel.ip_src;
+    //flow->tunnel.ip_dst = flow_metadata->flow.tunnel.ip_dst;
+    flow->metadata = flow_metadata->flow.metadata;
+    memcpy(flow->regs, flow_metadata->flow.regs, sizeof flow->regs);
+    flow->pkt_mark = flow_metadata->flow.pkt_mark;
+    flow->in_port.ofp_port = flow_metadata->flow.in_port.ofp_port;
+    flow->packet_type = flow_metadata->flow.packet_type;
+}
+
 char *
 flow_to_string(const struct flow *flow)
 {

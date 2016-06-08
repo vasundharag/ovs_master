@@ -3400,8 +3400,8 @@ handle_packet_out(struct ofconn *ofconn, const struct ofp_header *oh)
 
     /* Verify actions against packet, then send packet if successful. */
     flow_extract(payload, &flow);
-    flow.in_port.ofp_port = po.flow_metadata.flow.in_port.ofp_port;
-
+    //flow.in_port.ofp_port = po.flow_metadata.flow.in_port.ofp_port;
+    flow_set_metadata(&(po.flow_metadata), &flow);
     /* Check actions like for flow mods.  We pass a 'table_id' of 0 to
      * ofproto_check_consistency(), which isn't strictly correct because these
      * actions aren't in any table.  This is OK as 'table_id' is only used to

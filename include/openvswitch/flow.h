@@ -223,4 +223,7 @@ uint32_t flow_wildcards_hash(const struct flow_wildcards *, uint32_t basis);
 bool flow_wildcards_equal(const struct flow_wildcards *,
                           const struct flow_wildcards *);
 
+//void flow_set_metadata(const struct match *, struct flow *);
+
+
 #endif /* flow.h */
