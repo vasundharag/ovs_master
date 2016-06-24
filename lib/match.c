@@ -118,6 +118,67 @@ match_set_reg_masked(struct match *match, unsigned int reg_idx,
 }
 
 void
+match_set_pad1(struct match *match, unsigned int pad1_idx, uint8_t value)
+{
+    match_set_pad1_masked(match, pad1_idx, value, UINT8_MAX);
+}
+
+
+void
+match_set_pad1_masked(struct match *match, unsigned int pad1_idx,
+                     uint8_t value, uint8_t mask)
+{
+    ovs_assert(pad1_idx < 4);
+    flow_wildcards_set_pad1_mask(&match->wc, pad1_idx, mask);
+    match->flow.pad1[pad1_idx] = value & mask;
+}
+
+
+void
+match_set_pad2(struct match *match, uint8_t value)
+{
+    match_set_pad2_masked(match, value, UINT8_MAX);
+}
+
+void
+match_set_pad2_masked(struct match *match, uint8_t value, uint8_t mask)
+{
+    match->wc.masks.pad2 = mask;
+    match->flow.pad2 = value & mask;
+}
+
+/*
+void
+match_set_pad3(struct match *match, uint16_t value)
+{
+    match_set_pad3_masked(match, value, UINT16_MAX);
+}
+
+void
+match_set_pad3_masked(struct match *match, uint16_t value, uint16_t mask)
+{
+    match->wc.masks.pad3 = mask;
+    match->flow.pad3 = value & mask;
+}
+
+void
+match_set_pad4(struct match *match, unsigned int pad4_idx, uint8_t value)
+{
+    match_set_pad4_masked(match, pad4_idx, value, UINT8_MAX);
+}
+
+void
+match_set_pad4_masked(struct match *match, unsigned int pad4_idx,
+                     uint8_t value, uint8_t mask)
+{
+    ovs_assert(pad4_idx < FLOW_N_REGS);
+    flow_wildcards_set_pad4_mask(&match->wc, pad4_idx, mask);
+    match->flow.pad4[pad4_idx] = value & mask;
+}
+
+*/
+
+void
 match_set_xreg(struct match *match, unsigned int xreg_idx, uint64_t value)
 {
     match_set_xreg_masked(match, xreg_idx, value, UINT64_MAX);
@@ -152,6 +213,21 @@ match_set_metadata_masked(struct match *match,
     match->wc.masks.metadata = mask;
     match->flow.metadata = metadata & mask;
 }
+
+void
+match_set_packet_type(struct match *match, ovs_be32 packet_type)
+{
+    match_set_packet_type_masked(match, packet_type, OVS_BE32_MAX);
+}
+
+void
+match_set_packet_type_masked(struct match *match,
+                          ovs_be32 packet_type, ovs_be32 mask)
+{
+    match->wc.masks.packet_type = mask;
+    match->flow.packet_type = packet_type & mask;
+}
+
 
 void
 match_set_tun_id(struct match *match, ovs_be64 tun_id)
@@ -191,6 +267,35 @@ match_set_tun_dst_masked(struct match *match, ovs_be32 dst, ovs_be32 mask)
     match->wc.masks.tunnel.ip_dst = mask;
     match->flow.tunnel.ip_dst = dst & mask;
 }
+
+void
+match_set_tun_tp_src(struct match *match, ovs_be16 src)
+{
+    match_set_tun_tp_src_masked(match, src, OVS_BE16_MAX);
+}
+
+void
+match_set_tun_tp_src_masked(struct match *match, ovs_be16 src, ovs_be16 mask)
+{
+    match->wc.masks.tunnel.tp_src = mask;
+    match->flow.tunnel.tp_src = src & mask;
+}
+
+
+void
+match_set_tun_tp_dst(struct match *match, ovs_be16 dst)
+{
+    match_set_tun_tp_dst_masked(match, dst, OVS_BE16_MAX);
+}
+
+void
+match_set_tun_tp_dst_masked(struct match *match, ovs_be16 dst, ovs_be16 mask)
+{
+    match->wc.masks.tunnel.tp_dst = mask;
+    match->flow.tunnel.tp_dst = dst & mask;
+}
+
+
 
 void
 match_set_tun_ipv6_src(struct match *match, const struct in6_addr *src)
@@ -254,6 +359,9 @@ match_set_tun_flags(struct match *match, uint16_t flags)
     match_set_tun_flags_masked(match, flags, UINT16_MAX);
 }
 
+
+
+
 void
 match_set_tun_flags_masked(struct match *match, uint16_t flags, uint16_t mask)
 {
@@ -294,13 +402,6 @@ match_set_in_port(struct match *match, ofp_port_t ofp_port)
 {
     match->wc.masks.in_port.ofp_port = u16_to_ofp(UINT16_MAX);
     match->flow.in_port.ofp_port = ofp_port;
-}
-
-void
-match_set_skb_priority(struct match *match, uint32_t skb_priority)
-{
-    match->wc.masks.skb_priority = UINT32_MAX;
-    match->flow.skb_priority = skb_priority;
 }
 
 void
@@ -368,12 +469,14 @@ match_set_ct_label_masked(struct match *match, ovs_u128 value, ovs_u128 mask)
     match->wc.masks.ct_label = mask;
 }
 
+/* Base layer is now Packet_type
 void
-match_set_base_layer(struct match *match, uint8_t packet_type) //base_layer)
+match_set_base_layer(struct match *match, uint8_t base_layer)
 {
-    match->flow.packet_type = packet_type; //base_layer = base_layer;
-    match->wc.masks.packet_type = UINT8_MAX;//base_layer = UINT8_MAX;
+    match->flow.base_layer = base_layer;
+    match->wc.masks.base_layer = UINT8_MAX;
 }
+*/
 
 void
 match_set_dl_type(struct match *match, ovs_be16 dl_type)
@@ -381,6 +484,38 @@ match_set_dl_type(struct match *match, ovs_be16 dl_type)
     match->wc.masks.dl_type = OVS_BE16_MAX;
     match->flow.dl_type = dl_type;
 }
+
+void
+match_set_next_base_layer(struct match *match, uint8_t next_base_layer)
+{
+    match->flow.next_base_layer = UINT8_MAX;
+    match->flow.next_base_layer = next_base_layer;
+}
+
+
+
+void
+match_set_igmp_group_ip4(struct match *match, ovs_be32 igmp_group_ip4)
+{
+    match->wc.masks.igmp_group_ip4 = OVS_BE32_MAX;
+    match->flow.igmp_group_ip4 = igmp_group_ip4;
+}
+
+void
+match_set_vlan_tci(struct match *match, ovs_be16 vlan_tci)
+{
+    match->wc.masks.vlan_tci = OVS_BE16_MAX;
+    match->flow.vlan_tci = vlan_tci;
+}
+
+
+void
+match_set_skb_priority(struct match *match, uint32_t skb_priority)
+{
+    match->wc.masks.skb_priority = OVS_BE32_MAX;
+    match->flow.skb_priority = skb_priority;
+}
+
 
 /* Modifies 'value_src' so that the Ethernet address must match 'value_dst'
  * exactly.  'mask_dst' is set to all 1s. */
@@ -699,6 +834,23 @@ match_set_nw_dst_masked(struct match *match, ovs_be32 ip, ovs_be32 mask)
     match->flow.nw_dst = ip & mask;
     match->wc.masks.nw_dst = mask;
 }
+
+
+void
+match_set_nw_tos(struct match *match, uint8_t nw_tos)
+{
+    match->flow.nw_tos = nw_tos;
+    match->wc.masks.nw_tos = UINT8_MAX;
+}
+
+void
+match_set_nw_tos_masked(struct match *match,
+                        uint8_t nw_tos, uint8_t mask)
+{
+    match->flow.nw_tos = nw_tos & mask;
+    match->wc.masks.nw_tos = mask;
+}
+
 
 void
 match_set_nw_dscp(struct match *match, uint8_t nw_dscp)

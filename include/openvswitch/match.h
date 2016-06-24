@@ -57,6 +57,22 @@ void match_set_conj_id(struct match *, uint32_t value);
 void match_set_reg(struct match *, unsigned int reg_idx, uint32_t value);
 void match_set_reg_masked(struct match *, unsigned int reg_idx,
                           uint32_t value, uint32_t mask);
+
+void match_set_pad1(struct match *, unsigned int pad1_idx, uint8_t value);
+void match_set_pad1_masked(struct match *, unsigned int pad_idx,
+                          uint8_t value, uint8_t mask);
+
+void match_set_pad2(struct match *, uint8_t value);
+void match_set_pad2_masked(struct match *, uint8_t value, uint8_t mask);
+
+void match_set_pad3(struct match *, uint16_t value);
+void match_set_pad3_masked(struct match *, uint16_t value, uint16_t mask);
+
+
+void match_set_pad4(struct match *, unsigned int pad4_idx, uint8_t value);
+void match_set_pad4_masked(struct match *, unsigned int pad4_idx,
+                          uint8_t value, uint8_t mask);
+
 void match_set_xreg(struct match *, unsigned int xreg_idx, uint64_t value);
 void match_set_xreg_masked(struct match *, unsigned int xreg_idx,
                            uint64_t value, uint64_t mask);
@@ -82,11 +98,22 @@ void match_set_tun_tos(struct match *match, uint8_t tos);
 void match_set_tun_tos_masked(struct match *match, uint8_t tos, uint8_t mask);
 void match_set_tun_flags(struct match *match, uint16_t flags);
 void match_set_tun_flags_masked(struct match *match, uint16_t flags, uint16_t mask);
+
+void match_set_tun_tp_src(struct match *match, ovs_be16 tp_src);
+void match_set_tun_tp_src_masked(struct match *match, ovs_be16 tp_src, ovs_be16 mask);
+
+void match_set_tun_tp_dst(struct match *match, ovs_be16 tp_dst);
+void match_set_tun_tp_dst_masked(struct match *match, ovs_be16 tp_dst, ovs_be16 mask);
+
+void match_set_packet_type(struct match *match, ovs_be32 packet_type);
+void match_set_packet_type_masked(struct match *match, ovs_be32 tp_dst, ovs_be32 mask);
+
 void match_set_tun_gbp_id_masked(struct match *match, ovs_be16 gbp_id, ovs_be16 mask);
 void match_set_tun_gbp_id(struct match *match, ovs_be16 gbp_id);
 void match_set_tun_gbp_flags_masked(struct match *match, uint8_t flags, uint8_t mask);
 void match_set_tun_gbp_flags(struct match *match, uint8_t flags);
-void match_set_in_port(struct match *, ofp_port_t ofp_port);
+void match_set_in_port(struct match *match, ofp_port_t ofp_port);
+
 void match_set_pkt_mark(struct match *, uint32_t pkt_mark);
 void match_set_pkt_mark_masked(struct match *, uint32_t pkt_mark, uint32_t mask);
 void match_set_ct_state(struct match *, uint32_t ct_state);
@@ -96,7 +123,7 @@ void match_set_ct_mark(struct match *, uint32_t ct_mark);
 void match_set_ct_mark_masked(struct match *, uint32_t ct_mark, uint32_t mask);
 void match_set_ct_label(struct match *, ovs_u128 ct_label);
 void match_set_ct_label_masked(struct match *, ovs_u128 ct_label, ovs_u128 mask);
-void match_set_base_layer(struct match *, uint8_t base_layer);
+//void match_set_base_layer(struct match *, uint8_t base_layer);
 void match_set_skb_priority(struct match *, uint32_t skb_priority);
 void match_set_dl_type(struct match *, ovs_be16);
 void match_set_dl_src(struct match *, const struct eth_addr );
@@ -124,7 +151,7 @@ void match_set_mpls_bos(struct match *, int idx, uint8_t);
 void match_set_any_mpls_ttl(struct match *, int idx);
 void match_set_mpls_ttl(struct match *, int idx, uint8_t);
 void match_set_tp_src(struct match *, ovs_be16);
-void match_set_mpls_lse(struct match *, int idx, ovs_be32 lse);
+//void match_set_mpls_lse(struct match *, int idx, ovs_be32 lse);
 void match_set_tp_src_masked(struct match *, ovs_be16 port, ovs_be16 mask);
 void match_set_tp_dst(struct match *, ovs_be16);
 void match_set_tp_dst_masked(struct match *, ovs_be16 port, ovs_be16 mask);
@@ -140,6 +167,9 @@ void match_set_nw_ecn(struct match *, uint8_t);
 void match_set_nw_ttl(struct match *, uint8_t);
 void match_set_nw_frag(struct match *, uint8_t nw_frag);
 void match_set_nw_frag_masked(struct match *, uint8_t nw_frag, uint8_t mask);
+void match_set_nw_tos(struct match *, uint8_t nw_tos);
+void match_set_nw_tos_masked(struct match *, uint8_t nw_tos, uint8_t mask);
+
 void match_set_icmp_type(struct match *, uint8_t);
 void match_set_icmp_code(struct match *, uint8_t);
 void match_set_arp_sha(struct match *, const struct eth_addr);
@@ -162,6 +192,11 @@ void match_set_nd_target(struct match *, const struct in6_addr *);
 void match_set_nd_target_masked(struct match *, const struct in6_addr *,
                                 const struct in6_addr *);
 
+void match_set_vlan_tci(struct match *, ovs_be16);
+
+void match_set_next_base_layer(struct match *, uint8_t );
+
+
 bool match_equal(const struct match *, const struct match *);
 uint32_t match_hash(const struct match *, uint32_t basis);
 
@@ -171,6 +206,10 @@ bool match_has_default_hidden_fields(const struct match *);
 void match_format(const struct match *, struct ds *, int priority);
 char *match_to_string(const struct match *, int priority);
 void match_print(const struct match *);
+
+void match_set_igmp_group_ip4(struct match *, uint32_t);
+
+
 
 /* Compressed match. */
 

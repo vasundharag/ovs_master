@@ -47,6 +47,37 @@ struct ofp15_port_desc_request {
 };
 OFP_ASSERT(sizeof(struct ofp15_port_desc_request) == 8);
 
+/* Fields to match against flows */
+struct ofp15_match {
+    uint16_t type;                /* One of OFPMT_* */
+    uint16_t length;              /* Length of ofp_match (excluding padding) */
+
+/* Followed by:
+- Exactly (length - 4) (possibly 0) bytes containing OXM TLVs, then
+- Exactly ((length + 7)/8*8 - length) (between 0 and 7) bytes of all-zero bytes
+
+* In summary, ofp_match is padded as needed, to make its overall size
+* a multiple of 8, to preserve alignement in structures using it.
+*/
+
+    uint8_t oxm_fields[0];        /* 0 or more OXM match fields */
+    uint8_t pad[4];               /* Zero bytes - see above for sizing */
+};
+OFP_ASSERT(sizeof(struct ofp15_match) == 8);
+
+
+/* Flow wildcards. */
+enum ofp_flow_wildcards {
+    OFPFW_IN_PORT  = 1 << 0,    /*Switch input port. */
+    OFPFW_DL_VLAN  = 1 << 1,    /*VLAN */
+    OFPFW_DL_SRC   = 1 << 2,    /*Ethernet source address. */
+    OFPFW_DL_DST   = 1 << 3,    /*Ethernet destination address.*/ 
+    OFPFW_DL_TYPE  = 1 << 4,    /*Ethernet frame type. */
+    OFPFW_NW_PROTO = 1 << 5,    /*IP protocol. */
+    OFPFW_TP_SRC   = 1 << 6,    /*TCP/UDP source port.*/
+    OFPFW_TP_DST   = 1 << 7,    /*TCP/UDP destination port.*/
+};
+
 /* Group commands */
 enum ofp15_group_mod_command {
     /* Present since OpenFlow 1.1 - 1.4 */
@@ -150,12 +181,15 @@ struct ofp15_group_desc_stats {
 };
 OFP_ASSERT(sizeof(struct ofp15_group_desc_stats) == 16);
 
+
 /* Send packet (controller -> datapath). */
 struct ofp15_packet_out {
  ovs_be32 buffer_id; /* ID assigned by datapath (-1 if none). */
  ovs_be16 actions_len; /* Size of action array in bytes. */
  uint8_t pad[2];
- struct ofp11_match match; 
+ struct ofp11_match match;    /*to be replaced witch ofp15_match when ofp15_match is implemented*/
+ //struct ofp15_match match;  /*to be replacement of ofp11_match */
+
  /* The variable size and padded match is followed by the list of actions. */
  /* struct ofp_action_header actions[0]; *//* Action list - 0 or more. */
  /* The variable size action list is optionally followed by packet data.

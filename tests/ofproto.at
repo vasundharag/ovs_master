@@ -3532,9 +3532,9 @@ AT_CHECK([ovs-ofctl -O OpenFlow15 packet-out br0 CONTROLLER 'set_field:0xfafafaf
 ovs-appctl -t ovs-ofctl ofctl/barrier
 ovs-appctl -t ovs-ofctl exit
 AT_CHECK([sed 's/ (xid=0x[[0-9a-fA-F]]*)//' monitor.log], [0], [dnl
-OFPT_PACKET_IN (OF1.3): total_len=14 in_port=CONTROLLER metadata=0xfafafafa5a5a5a5a (via action) data_len=14 (unbuffered)
+OFPT_PACKET_IN (OF1.5): total_len=14 in_port=CONTROLLER metadata=0xfafafafa5a5a5a5a (via action) data_len=14 (unbuffered)
 in_port=0,vlan_tci=0x0000,dl_src=00:10:20:30:40:50,dl_dst=00:01:02:03:04:05,dl_type=0x1234
-OFPT_BARRIER_REPLY (OF1.3):
+OFPT_BARRIER_REPLY (OF1.5):
 ])
 OVS_VSWITCHD_STOP
 AT_CLEANUP

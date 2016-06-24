@@ -106,8 +106,8 @@ struct pkt_metadata {
     union flow_in_port in_port; /* Input port. */
     ovs_be16 packet_ethertype;  /* Ethertype of the packet */
     //uint8_t base_layer;         /* Packet starts at this layer */
-  
-    uint8_t packet_type;         /* Packet starts at this layer */
+    //uint8_t packet_type;         /* Packet starts at this layer */
+    ovs_be32 packet_type;         /* Packet starts at this layer */
     struct flow_tnl tunnel;     /* Encapsulating tunnel parameters. Note that
                                  * if 'ip_dst' == 0, the rest of the fields may
                                  * be uninitialized. */
@@ -187,6 +187,21 @@ static inline bool eth_addr_is_zero(const struct eth_addr a)
 {
     return !(a.be16[0] | a.be16[1] | a.be16[2]);
 }
+
+/********to be implemented *********/
+/*
+static inline bool in6_addr_is_zero(const struct in6_addr a)
+{   
+   
+    bool res;
+   
+    for (int i=0; i<16;i++)
+         res|=a.u_s6_addr[i];
+    return !(res);
+    
+}
+*/
+
 
 static inline int eth_mask_is_exact(const struct eth_addr a)
 {

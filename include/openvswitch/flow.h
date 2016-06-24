@@ -208,6 +208,14 @@ bool flow_wildcards_is_catchall(const struct flow_wildcards *);
 
 void flow_wildcards_set_reg_mask(struct flow_wildcards *,
                                  int idx, uint32_t mask);
+
+
+void flow_wildcards_set_pad1_mask(struct flow_wildcards *,
+                                 int idx, uint8_t mask);
+
+//void flow_wildcards_set_pad4_mask(struct flow_wildcards *, int idx, uint8_t mask);
+
+
 void flow_wildcards_set_xreg_mask(struct flow_wildcards *,
                                   int idx, uint64_t mask);
 

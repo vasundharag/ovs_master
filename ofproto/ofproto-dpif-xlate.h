@@ -42,11 +42,11 @@ struct xlate_out {
 
     struct recirc_refs recircs; /* Recirc action IDs on which references are
                                  * held. */
-    struct ofpbuf *odp_actions; 
-   
+    struct ofpbuf *odp_actions;
 };
 
 struct xlate_in {
+fproto/ofproto-dpif-xlate.h
     struct ofproto_dpif *ofproto;
 
     /* Flow to which the OpenFlow actions apply.  xlate_actions() will modify

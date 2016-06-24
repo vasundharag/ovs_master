@@ -1973,6 +1973,7 @@ ofctl_packet_out(struct ovs_cmdl_context *ctx)
     protocol = open_vconn(ctx->argv[1], &vconn);
     for (i = 4; i < ctx->argc; i++) {
         struct dp_packet *packet;
+        //struct ofpbuf_packet *packet;
         struct ofpbuf *opo;
         const char *error_msg;
 
@@ -2022,23 +2023,28 @@ ofctl_packet_out_metadata(int argc, char *argv[])
     po.ofpacts = ofpacts.data; //ofpbuf_data(&ofpacts);
     po.ofpacts_len = ofpacts.size;//ofpbuf_size(&ofpacts);
     protocol = open_vconn(argv[1], &vconn);
-    for (i = 6; i < argc; i++) {
-        //struct ofpbuf *packet, *opo;
+    for (i = 6; i < argc; i++) 
+    {
+        //struct ofpbuf *packet;
         struct dp_packet *packet;
         struct ofpbuf *opo;
         const char *error_msg;
         error_msg = eth_from_hex(argv[i], &packet);
-        if (error_msg) {
+        if (error_msg) 
+        {
             ovs_fatal(0, "%s", error_msg);
         }
         po.packet = dp_packet_data(packet);
 	po.packet_len = dp_packet_size(packet);
+        //po.packet = packet.data;
+        //po.packet_len = packet.size;
 	opo = ofputil_encode_packet_out(&po, protocol);
 	transact_noreply(vconn, opo);
 	dp_packet_delete(packet);
-	}
-	vconn_close(vconn);
-	ofpbuf_uninit(&ofpacts);
+    }
+
+    vconn_close(vconn);
+    ofpbuf_uninit(&ofpacts);
 }
 
 
@@ -4126,10 +4132,9 @@ static const struct ovs_cmdl_command all_commands[] = {
     { "encode-error-reply", NULL, 2, 2, ofctl_encode_error_reply },
     { "ofp-print", NULL, 1, 2, ofctl_ofp_print },
     { "encode-hello", NULL, 1, 1, ofctl_encode_hello },
-    { "packet-out-metadata", "switch in_port metadata tun_id actions packet...",
-       6, INT_MAX, ofctl_packet_out_metadata },
-    
-    { NULL, NULL, 0, 0, NULL },
+    //{ "packet-out-metadata", "switch in_port metadata tun_id actions packet...",6, INT_MAX, ofctl_packet_out_metadata},
+    { "packet-out-metadata","switch in_port metadata tun_id actions packet",6,INT_MAX,ofctl_packet_out_metadata},
+    { NULL, NULL, 0, 0, NULL }
 };
 
 static const struct ovs_cmdl_command *get_all_commands(void)

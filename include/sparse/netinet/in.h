@@ -41,7 +41,7 @@ struct sockaddr_in {
 struct in6_addr {
     union {
         uint8_t u_s6_addr[16];
-    } u;
+    }u;
 };
 
 #define s6_addr u.u_s6_addr

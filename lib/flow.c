@@ -952,6 +952,7 @@ flow_get_metadata(const struct flow *flow, struct match *flow_metadata)
     }
 
     match_set_in_port(flow_metadata, flow->in_port.ofp_port);
+
     if (flow->ct_state != 0) {
         match_set_ct_state(flow_metadata, flow->ct_state);
     }
@@ -1676,6 +1677,27 @@ flow_wildcards_set_xreg_mask(struct flow_wildcards *wc, int idx, uint64_t mask)
 {
     flow_set_xreg(&wc->masks, idx, mask);
 }
+
+
+/* Sets the wildcard mask for pad1 'idx' in 'wc' to 'mask'.
+ * (A 0-bit indicates a wildcard bit.) */
+
+void
+flow_wildcards_set_pad1_mask(struct flow_wildcards *wc, int idx, uint8_t mask)
+{
+    wc->masks.pad1[idx] = mask;
+}
+
+
+/* Sets the wildcard mask for pad4 'idx' in 'wc' to 'mask'.
+ * (A 0-bit indicates a wildcard bit.) */
+/*
+void
+flow_wildcards_set_pad4_mask(struct flow_wildcards *wc, int idx, uint8_t mask)
+{
+    //flow_set_pad4(&wc->masks, idx, mask);    to be implemented
+}
+*/
 
 /* Calculates the 5-tuple hash from the given miniflow.
  * This returns the same value as flow_hash_5tuple for the corresponding

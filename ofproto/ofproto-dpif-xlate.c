@@ -5252,6 +5252,7 @@ xlate_actions(struct xlate_in *xin, struct xlate_out *xout)
     *xout = (struct xlate_out) {
         .slow = 0,
         .recircs = RECIRC_REFS_EMPTY_INITIALIZER,
+        .odp_actions = NULL ,
     };
 
     struct xlate_cfg *xcfg = ovsrcu_get(struct xlate_cfg *, &xcfgp);

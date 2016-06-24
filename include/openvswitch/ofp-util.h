@@ -42,6 +42,7 @@ enum ofperr ofputil_port_from_ofp11(ovs_be32 ofp11_port,
                                     ofp_port_t *ofp10_port);
 ovs_be32 ofputil_port_to_ofp11(ofp_port_t ofp10_port);
 
+
 bool ofputil_port_from_string(const char *, ofp_port_t *portp);
 void ofputil_format_port(ofp_port_t port, struct ds *);
 
@@ -520,7 +521,8 @@ struct ofputil_packet_out {
     size_t packet_len;          /* Length of packet data in bytes. */
     uint32_t buffer_id;         /* Buffer id or UINT32_MAX if no buffer. */
     ofp_port_t in_port;
-    struct match flow_metadata; /* Packet's flow metadata. */
+    //struct match flow_metadata; /* Packet's flow metadata. */
+    struct match flow_metadata;         /* Match fields*/ 	
     struct ofpact *ofpacts;     /* Actions. */
     size_t ofpacts_len;         /* Size of ofpacts in bytes. */
 };
