@@ -23,7 +23,6 @@
 /* The following vendor extensions, proposed by Nicira, are not yet
  * standardized, so they are not included in openflow.h.  Some of them may be
  * suitable for standardization; others we never expect to standardize. */
-
 
 /* Nicira vendor-specific error messages extension.
  *
@@ -48,7 +47,6 @@
  * Currently this extension is only implemented by Open vSwitch, but it seems
  * like a reasonable candidate for future standardization.
  */
-
 /* This is a random number to avoid accidental collision with any other
  * vendor's extension. */
 #define NXET_VENDOR 0xb0c2

@@ -4135,7 +4135,7 @@ static const struct ovs_cmdl_command all_commands[] = {
     { "encode-hello", NULL, 1, 1, ofctl_encode_hello },
     { "packet-out-metadata", "switch in_port metadata tun_id actions packet...",6, INT_MAX, ofctl_packet_out_metadata},
     //{ "packet-out-metadata","switch in_port metadata tun_id actions packet",6,INT_MAX,ofctl_packet_out_metadata},
-    { NULL, NULL, 0, 0, NULL }
+    { NULL, NULL, 0, 0, NULL },
 };
 
 static const struct ovs_cmdl_command *get_all_commands(void)
