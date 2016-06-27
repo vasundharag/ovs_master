@@ -7075,15 +7075,15 @@ ofputil_ofp15_to_match(const struct match *match,
                      struct match *fmd)
 {
     fmd->flow.in_port.ofp_port = match->flow.in_port.ofp_port;
-    fmd->flow.tunnel.tun_id = match->flow.tunnel.tun_id;
-    fmd->flow.tunnel.ip_src = match->flow.tunnel.ip_src;
-    fmd->flow.tunnel.ip_dst = match->flow.tunnel.ip_dst;
+    //fmd->flow.tunnel.tun_id = match->flow.tunnel.tun_id;
+    //fmd->flow.tunnel.ip_src = match->flow.tunnel.ip_src;
+    //fmd->flow.tunnel.ip_dst = match->flow.tunnel.ip_dst;
     fmd->flow.metadata = match->flow.metadata;
     fmd->flow.packet_type = match->flow.packet_type;
     memcpy(fmd->flow.regs, match->flow.regs, sizeof fmd->flow.regs);
     fmd->flow.pkt_mark = match->flow.pkt_mark;
-    fmd->flow.tunnel.tp_src = match->flow.tunnel.tp_src;
-    fmd->flow.tunnel.tp_dst = match->flow.tunnel.tp_dst;
+    //fmd->flow.tunnel.tp_src = match->flow.tunnel.tp_src;
+    //fmd->flow.tunnel.tp_dst = match->flow.tunnel.tp_dst;
     fmd->flow.dl_src = match->flow.dl_src;
     fmd->flow.dl_dst = match->flow.dl_dst;
     fmd->flow.dl_type = match->flow.dl_type;
@@ -7093,8 +7093,11 @@ ofputil_ofp15_to_match(const struct match *match,
     fmd->flow.nw_proto = match->flow.nw_proto;
     fmd->flow.tp_src = match->flow.tp_src;
     fmd->flow.tp_dst = match->flow.tp_dst;
-    memcpy(fmd->flow.pad1, match->flow.pad1, sizeof fmd->flow.pad1);
+    //memcpy(fmd->flow.pad1, match->flow.pad1, sizeof fmd->flow.pad1);
+    fmd->flow.pad1[0] = match->flow.pad1[0];
     fmd->flow.pad2 = match->flow.pad2;
+    fmd->flow.vlan_tci = match->flow.vlan_tci;
+    fmd->flow.recirc_id = match->flow.recirc_id;
 }
 
 
@@ -10622,9 +10625,9 @@ ofputil_match_to_ofp15(const struct match *util_match,struct match *ofp15_match)
         match_set_metadata(ofp15_match, util_match->flow.metadata);
     }
     
-    //match_set_packet_type(ofp15_match, util_match->flow.packet_type);
+    match_set_packet_type(ofp15_match, util_match->flow.packet_type);
     
-    /*
+    
     for (int i = 0; i < FLOW_N_REGS; i++) {
         if (util_match->flow.regs[i]) {
             match_set_reg(ofp15_match, i, util_match->flow.regs[i]);
@@ -10634,7 +10637,7 @@ ofputil_match_to_ofp15(const struct match *util_match,struct match *ofp15_match)
     if (util_match->flow.pkt_mark != 0) {
         match_set_pkt_mark(ofp15_match, util_match->flow.pkt_mark);
     }
-   */
+  
     match_set_in_port(ofp15_match, util_match->flow.in_port.ofp_port);
     
      /*
@@ -10645,11 +10648,11 @@ ofputil_match_to_ofp15(const struct match *util_match,struct match *ofp15_match)
     if (util_match->flow.dp_hash != 0) {
         match_set_dp_hash(ofp15_match, util_match->flow.dp_hash);
     }
-
+    */
     if (util_match->flow.recirc_id != 0) {
         match_set_recirc_id(ofp15_match, util_match->flow.recirc_id);
     }
-
+     /*
 
     if (util_match->flow.ct_state!= 0) {
         match_set_ct_state(ofp15_match, util_match->flow.ct_state);
@@ -10689,11 +10692,11 @@ ofputil_match_to_ofp15(const struct match *util_match,struct match *ofp15_match)
     if (util_match->flow.dl_type != 0) {
        match_set_dl_type(ofp15_match, util_match->flow.dl_type);
     }
-    /*
+    
     if (util_match->flow.vlan_tci != 0) {
         match_set_vlan_tci(ofp15_match, util_match->flow.vlan_tci);
     }
-
+   /* 
     for(int i=0; i<3 ;i++)
     {
     	if (util_match->flow.mpls_lse[i]) {
