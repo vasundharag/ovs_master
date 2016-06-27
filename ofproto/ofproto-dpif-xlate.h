@@ -46,13 +46,11 @@ struct xlate_out {
 };
 
 struct xlate_in {
-fproto/ofproto-dpif-xlate.h
     struct ofproto_dpif *ofproto;
 
     /* Flow to which the OpenFlow actions apply.  xlate_actions() will modify
      * this flow when actions change header fields. */
     struct flow flow;
-
     /* The packet corresponding to 'flow', or a null pointer if we are
      * revalidating without a packet to refer to. */
     const struct dp_packet *packet;

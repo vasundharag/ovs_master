@@ -10606,7 +10606,7 @@ ofputil_match_to_ofp15(const struct match *util_match,struct match *ofp15_match)
     if (util_match->flow.tunnel.ip_ttl != htonl(0)) {
         match_set_tun_ttl(ofp15_match, util_match->flow.tunnel.ip_ttl);
     }
-    */
+    
 
     if (util_match->flow.tunnel.tp_src != htonl(0)) {
         match_set_tun_tp_src(ofp15_match, util_match->flow.tunnel.tp_src);
@@ -10616,15 +10616,15 @@ ofputil_match_to_ofp15(const struct match *util_match,struct match *ofp15_match)
     if (util_match->flow.tunnel.tp_dst != htonl(0)) {
         match_set_tun_tp_dst(ofp15_match, util_match->flow.tunnel.tp_dst);
     }
-   
+    */   
 
     if (util_match->flow.metadata != htonll(0)) {
         match_set_metadata(ofp15_match, util_match->flow.metadata);
+    }
     
+    //match_set_packet_type(ofp15_match, util_match->flow.packet_type);
     
-    match_set_packet_type(ofp15_match, util_match->flow.packet_type);
-    
-    
+    /*
     for (int i = 0; i < FLOW_N_REGS; i++) {
         if (util_match->flow.regs[i]) {
             match_set_reg(ofp15_match, i, util_match->flow.regs[i]);
@@ -10634,7 +10634,7 @@ ofputil_match_to_ofp15(const struct match *util_match,struct match *ofp15_match)
     if (util_match->flow.pkt_mark != 0) {
         match_set_pkt_mark(ofp15_match, util_match->flow.pkt_mark);
     }
-   
+   */
     match_set_in_port(ofp15_match, util_match->flow.in_port.ofp_port);
     
      /*
@@ -10687,7 +10687,7 @@ ofputil_match_to_ofp15(const struct match *util_match,struct match *ofp15_match)
     }
  
     if (util_match->flow.dl_type != 0) {
-        match_set_dl_type(ofp15_match, util_match->flow.dl_type);
+       match_set_dl_type(ofp15_match, util_match->flow.dl_type);
     }
     /*
     if (util_match->flow.vlan_tci != 0) {
@@ -10774,13 +10774,18 @@ ofputil_match_to_ofp15(const struct match *util_match,struct match *ofp15_match)
     if (util_match->flow.next_base_layer != 0) {
         match_set_next_base_layer(ofp15_match, util_match->flow.next_base_layer );
     }
-*/
+
 
     for (int i = 0; i < 4; i++) {
         if (util_match->flow.pad1[i]) {
             match_set_pad1(ofp15_match, i, util_match->flow.pad1[i]);
         }
-    }
+    }*/
+
+   if (util_match->flow.pad1[0]) {
+            match_set_pad1(ofp15_match, 0, util_match->flow.pad1[0]);
+        }
+
 
    if (util_match->flow.pad2 != 0) {
             match_set_pad2(ofp15_match, util_match->flow.pad2);
@@ -10798,6 +10803,6 @@ ofputil_match_to_ofp15(const struct match *util_match,struct match *ofp15_match)
         }
     }
 */
-} 
+ 
 
 }

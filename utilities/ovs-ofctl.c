@@ -1994,7 +1994,8 @@ ofctl_packet_out(struct ovs_cmdl_context *ctx)
 
 
 static void
-ofctl_packet_out_metadata(int argc, char *argv[])
+//ofctl_packet_out_metadata(int argc, char *argv[])
+ofctl_packet_out_metadata(struct ovs_cmdl_context *ctx)
 {
     enum ofputil_protocol protocol;
     struct ofputil_packet_out po;
@@ -2004,32 +2005,32 @@ ofctl_packet_out_metadata(int argc, char *argv[])
     int i;
     enum ofputil_protocol usable_protocols; /* XXX: Use in proto selection */
     ofpbuf_init(&ofpacts, 64);
-    error = ofpacts_parse_actions(argv[5], &ofpacts, &usable_protocols);
+    error = ofpacts_parse_actions(ctx->argv[5], &ofpacts, &usable_protocols);
     if (error) 
     {
         ovs_fatal(0, "%s", error);
     }
     memset(&(po.flow_metadata), 0, sizeof(struct match));
     po.buffer_id = UINT32_MAX;
-    po.flow_metadata.flow.in_port.ofp_port = str_to_port_no(argv[1], argv[2]);
-    error = str_to_be64(argv[3], &po.flow_metadata.flow.metadata);
+    po.flow_metadata.flow.in_port.ofp_port = str_to_port_no(ctx->argv[1], ctx->argv[2]);
+    error = str_to_be64(ctx->argv[3], &po.flow_metadata.flow.metadata);
     if (error) {
         ovs_fatal(0, "%s", error);
     }
-    error = str_to_be64(argv[4], &po.flow_metadata.flow.tunnel.tun_id);
+    error = str_to_be64(ctx->argv[4], &po.flow_metadata.flow.tunnel.tun_id);
     if (error) {
         ovs_fatal(0, "%s", error);
     }
     po.ofpacts = ofpacts.data; //ofpbuf_data(&ofpacts);
     po.ofpacts_len = ofpacts.size;//ofpbuf_size(&ofpacts);
-    protocol = open_vconn(argv[1], &vconn);
-    for (i = 6; i < argc; i++) 
+    protocol = open_vconn(ctx->argv[1], &vconn);
+    for (i = 6; i < ctx->argc; i++) 
     {
         //struct ofpbuf *packet;
         struct dp_packet *packet;
         struct ofpbuf *opo;
         const char *error_msg;
-        error_msg = eth_from_hex(argv[i], &packet);
+        error_msg = eth_from_hex(ctx->argv[i], &packet);
         if (error_msg) 
         {
             ovs_fatal(0, "%s", error_msg);
@@ -4132,8 +4133,8 @@ static const struct ovs_cmdl_command all_commands[] = {
     { "encode-error-reply", NULL, 2, 2, ofctl_encode_error_reply },
     { "ofp-print", NULL, 1, 2, ofctl_ofp_print },
     { "encode-hello", NULL, 1, 1, ofctl_encode_hello },
-    //{ "packet-out-metadata", "switch in_port metadata tun_id actions packet...",6, INT_MAX, ofctl_packet_out_metadata},
-    { "packet-out-metadata","switch in_port metadata tun_id actions packet",6,INT_MAX,ofctl_packet_out_metadata},
+    { "packet-out-metadata", "switch in_port metadata tun_id actions packet...",6, INT_MAX, ofctl_packet_out_metadata},
+    //{ "packet-out-metadata","switch in_port metadata tun_id actions packet",6,INT_MAX,ofctl_packet_out_metadata},
     { NULL, NULL, 0, 0, NULL }
 };
 
