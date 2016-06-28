@@ -122,39 +122,6 @@ flow_set_xreg(struct flow *flow, int idx, uint64_t value)
     flow->regs[idx * 2 + 1] = value;
 }
 
-
-
-/*
-static inline void
-flow_set_pad1(struct flow *flow, int idx, uint64_t value)
-{
-//to be implemented
-}
-static inline void
-flow_get_pad1(struct flow *flow, int idx)
-{
-//to be implemented
-}
-
-
-static inline void
-flow_set_pad4(struct flow *flow, int idx, uint64_t value)
-{
-//to be implemented
-}
-
-static inline void
-flow_get_pad4(struct flow *flow, int idx)
-{
-//to be implemented
-}
-
-*/
-
-
-
-
-
 static inline int
 flow_compare_3way(const struct flow *a, const struct flow *b)
 {

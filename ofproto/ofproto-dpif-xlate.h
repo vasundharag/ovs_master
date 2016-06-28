@@ -39,9 +39,7 @@ struct xlate_cache;
 
 struct xlate_out {
     enum slow_path_reason slow; /* 0 if fast path may be used. */
-
-    struct recirc_refs recircs; /* Recirc action IDs on which references are
-                                 * held. */
+    struct recirc_refs recircs; /* Recirc action IDs on which references are held. */
     struct ofpbuf *odp_actions;
 };
 

@@ -62,8 +62,6 @@ enum base_layer {
 
 enum packet_type {
      PACKET_ETH = 0,                        /* namespace = 0, ns_type = 0 */
-    //PACKET_IPV4 = 1,
-    //PACKET_IPV6 = 2
      PACKET_IPV4 = CONSTANT_HTONL(0x10800), /* namespace = 1, ns_type = 0x0800 */
      PACKET_IPV6 = CONSTANT_HTONL(0x186dd), /* namespace = 1, ns_type = 0x86dd */
 };
@@ -213,11 +211,7 @@ void flow_wildcards_set_reg_mask(struct flow_wildcards *,
 void flow_wildcards_set_pad1_mask(struct flow_wildcards *,
                                  int idx, uint8_t mask);
 
-//void flow_wildcards_set_pad4_mask(struct flow_wildcards *, int idx, uint8_t mask);
-
-
-void flow_wildcards_set_xreg_mask(struct flow_wildcards *,
-                                  int idx, uint64_t mask);
+void flow_wildcards_set_xreg_mask(struct flow_wildcards *, int idx, uint64_t mask);
 
 void flow_wildcards_and(struct flow_wildcards *dst,
                         const struct flow_wildcards *src1,
@@ -230,8 +224,4 @@ bool flow_wildcards_has_extra(const struct flow_wildcards *,
 uint32_t flow_wildcards_hash(const struct flow_wildcards *, uint32_t basis);
 bool flow_wildcards_equal(const struct flow_wildcards *,
                           const struct flow_wildcards *);
-
-//void flow_set_metadata(const struct match *, struct flow *);
-
-
 #endif /* flow.h */

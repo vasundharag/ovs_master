@@ -120,63 +120,17 @@ match_set_reg_masked(struct match *match, unsigned int reg_idx,
 void
 match_set_pad1(struct match *match, unsigned int pad1_idx, uint8_t value)
 {
-    match_set_pad1_masked(match, pad1_idx, value, UINT8_MAX);
+    //match_set_pad1_masked(match, pad1_idx, value, UINT8_MAX);
+     match->flow.pad1[pad1_idx] = value;
 }
-
-
-void
-match_set_pad1_masked(struct match *match, unsigned int pad1_idx,
-                     uint8_t value, uint8_t mask)
-{
-    ovs_assert(pad1_idx < 4);
-    flow_wildcards_set_pad1_mask(&match->wc, pad1_idx, mask);
-    match->flow.pad1[pad1_idx] = value & mask;
-}
-
 
 void
 match_set_pad2(struct match *match, uint8_t value)
 {
-    match_set_pad2_masked(match, value, UINT8_MAX);
+   //match_set_pad2_masked(match, value, UINT8_MAX);
+     match->flow.pad2 = value;
 }
 
-void
-match_set_pad2_masked(struct match *match, uint8_t value, uint8_t mask)
-{
-    match->wc.masks.pad2 = mask;
-    match->flow.pad2 = value & mask;
-}
-
-/*
-void
-match_set_pad3(struct match *match, uint16_t value)
-{
-    match_set_pad3_masked(match, value, UINT16_MAX);
-}
-
-void
-match_set_pad3_masked(struct match *match, uint16_t value, uint16_t mask)
-{
-    match->wc.masks.pad3 = mask;
-    match->flow.pad3 = value & mask;
-}
-
-void
-match_set_pad4(struct match *match, unsigned int pad4_idx, uint8_t value)
-{
-    match_set_pad4_masked(match, pad4_idx, value, UINT8_MAX);
-}
-
-void
-match_set_pad4_masked(struct match *match, unsigned int pad4_idx,
-                     uint8_t value, uint8_t mask)
-{
-    ovs_assert(pad4_idx < FLOW_N_REGS);
-    flow_wildcards_set_pad4_mask(&match->wc, pad4_idx, mask);
-    match->flow.pad4[pad4_idx] = value & mask;
-}
-
-*/
 
 void
 match_set_xreg(struct match *match, unsigned int xreg_idx, uint64_t value)
@@ -400,7 +354,7 @@ match_set_tun_gbp_flags(struct match *match, uint8_t flags)
 void
 match_set_in_port(struct match *match, ofp_port_t ofp_port)
 {
-    match->wc.masks.in_port.ofp_port = u16_to_ofp(UINT16_MAX);
+    //match->wc.masks.in_port.ofp_port = u32_to_ofp(UINT32_MAX);
     match->flow.in_port.ofp_port = ofp_port;
 }
 

@@ -1001,8 +1001,8 @@ flow_set_metadata(const struct match *flow_metadata, struct flow *flow)
 
     flow->recirc_id = flow_metadata->flow.recirc_id;
     flow->tunnel.tun_id = flow_metadata->flow.tunnel.tun_id;
-    //flow->tunnel.ip_src = flow_metadata->flow.tunnel.ip_src;
-    //flow->tunnel.ip_dst = flow_metadata->flow.tunnel.ip_dst;
+    flow->tunnel.ip_src = flow_metadata->flow.tunnel.ip_src;
+    flow->tunnel.ip_dst = flow_metadata->flow.tunnel.ip_dst;
     flow->metadata = flow_metadata->flow.metadata;
     memcpy(flow->regs, flow_metadata->flow.regs, sizeof flow->regs);
     flow->pkt_mark = flow_metadata->flow.pkt_mark;
@@ -1688,16 +1688,6 @@ flow_wildcards_set_pad1_mask(struct flow_wildcards *wc, int idx, uint8_t mask)
     wc->masks.pad1[idx] = mask;
 }
 
-
-/* Sets the wildcard mask for pad4 'idx' in 'wc' to 'mask'.
- * (A 0-bit indicates a wildcard bit.) */
-/*
-void
-flow_wildcards_set_pad4_mask(struct flow_wildcards *wc, int idx, uint8_t mask)
-{
-    //flow_set_pad4(&wc->masks, idx, mask);    to be implemented
-}
-*/
 
 /* Calculates the 5-tuple hash from the given miniflow.
  * This returns the same value as flow_hash_5tuple for the corresponding

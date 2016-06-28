@@ -521,7 +521,6 @@ struct ofputil_packet_out {
     size_t packet_len;          /* Length of packet data in bytes. */
     uint32_t buffer_id;         /* Buffer id or UINT32_MAX if no buffer. */
     ofp_port_t in_port;
-    //struct match flow_metadata; /* Packet's flow metadata. */
     struct match flow_metadata;         /* Match fields*/ 	
     struct ofpact *ofpacts;     /* Actions. */
     size_t ofpacts_len;         /* Size of ofpacts in bytes. */

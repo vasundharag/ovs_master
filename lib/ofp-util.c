@@ -6918,13 +6918,9 @@ ofputil_encode_packet_out(const struct ofputil_packet_out *po,
     case OFP16_VERSION:	
     {
 	struct ofp15_packet_out *opo;
-	//struct flow_metadata fmd;
 	struct match match;
 	size_t len;
 	memset((char *) &(match.flow), '\0', sizeof(match.flow));
-
-	//match.flow.in_port = po->flow_metadata.flow.in_port;
-	//ofputil_fmd_to_match(&fmd, &match);
         ofputil_match_to_ofp15(&(po->flow_metadata), &match);
 	size += sizeof(struct flow) * 2;
 	msg = ofpraw_alloc(OFPRAW_OFPT15_PACKET_OUT, ofp_version, size);
@@ -7075,15 +7071,15 @@ ofputil_ofp15_to_match(const struct match *match,
                      struct match *fmd)
 {
     fmd->flow.in_port.ofp_port = match->flow.in_port.ofp_port;
-    fmd->flow.tunnel.tun_id = match->flow.tunnel.tun_id;
-    fmd->flow.tunnel.ip_src = match->flow.tunnel.ip_src;
-    fmd->flow.tunnel.ip_dst = match->flow.tunnel.ip_dst;
+    //fmd->flow.tunnel.tun_id = match->flow.tunnel.tun_id;
+    //fmd->flow.tunnel.ip_src = match->flow.tunnel.ip_src;
+    //fmd->flow.tunnel.ip_dst = match->flow.tunnel.ip_dst;
     fmd->flow.metadata = match->flow.metadata;
     fmd->flow.packet_type = match->flow.packet_type;
-    memcpy(fmd->flow.regs, match->flow.regs, sizeof fmd->flow.regs);
-    fmd->flow.pkt_mark = match->flow.pkt_mark;
-    fmd->flow.tunnel.tp_src = match->flow.tunnel.tp_src;
-    fmd->flow.tunnel.tp_dst = match->flow.tunnel.tp_dst;
+    //memcpy(fmd->flow.regs, match->flow.regs, sizeof fmd->flow.regs);
+    //fmd->flow.pkt_mark = match->flow.pkt_mark;
+    //fmd->flow.tunnel.tp_src = match->flow.tunnel.tp_src;
+    //fmd->flow.tunnel.tp_dst = match->flow.tunnel.tp_dst;
     fmd->flow.dl_src = match->flow.dl_src;
     fmd->flow.dl_dst = match->flow.dl_dst;
     fmd->flow.dl_type = match->flow.dl_type;
@@ -7093,7 +7089,8 @@ ofputil_ofp15_to_match(const struct match *match,
     fmd->flow.nw_proto = match->flow.nw_proto;
     fmd->flow.tp_src = match->flow.tp_src;
     fmd->flow.tp_dst = match->flow.tp_dst;
-    memcpy(fmd->flow.pad1, match->flow.pad1, sizeof fmd->flow.pad1);
+    //memcpy(fmd->flow.pad1, match->flow.pad1, sizeof fmd->flow.pad1);
+    //fmd->flow.pad1[0] = match->flow.pad1[0];
     fmd->flow.pad2 = match->flow.pad2;
 }
 
@@ -10583,99 +10580,13 @@ ofputil_match_to_ofp15(const struct match *util_match,struct match *ofp15_match)
 {
     
     match_init_catchall(ofp15_match);
-    /*
-    if (util_match->flow.tunnel.tun_id != htonll(0)) {
-        match_set_tun_id(ofp15_match, util_match->flow.tunnel.tun_id);
-    }
-
-    if (util_match->flow.tunnel.ip_src != htonl(0)) {
-        match_set_tun_src(ofp15_match, util_match->flow.tunnel.ip_src);
-    }
-    if (util_match->flow.tunnel.ip_dst != htonl(0)) {
-        match_set_tun_dst(ofp15_match, util_match->flow.tunnel.ip_dst);
-    }
-
-    if (util_match->flow.tunnel.flags != htonl(0)) {
-        match_set_tun_flags(ofp15_match, util_match->flow.tunnel.flags);
-    }
- 
-    if (util_match->flow.tunnel.ip_tos != htonl(0)) {
-        match_set_tun_tos(ofp15_match, util_match->flow.tunnel.ip_tos);
-    }
-
-    if (util_match->flow.tunnel.ip_ttl != htonl(0)) {
-        match_set_tun_ttl(ofp15_match, util_match->flow.tunnel.ip_ttl);
-    }
-    
-
-    if (util_match->flow.tunnel.tp_src != htonl(0)) {
-        match_set_tun_tp_src(ofp15_match, util_match->flow.tunnel.tp_src);
-    }
-
-
-    if (util_match->flow.tunnel.tp_dst != htonl(0)) {
-        match_set_tun_tp_dst(ofp15_match, util_match->flow.tunnel.tp_dst);
-    }
-    */   
 
     if (util_match->flow.metadata != htonll(0)) {
-        match_set_metadata(ofp15_match, util_match->flow.metadata);
+        match_set_metadata(ofp15_match, util_match->flow.metadata );
     }
     
-    //match_set_packet_type(ofp15_match, util_match->flow.packet_type);
-    
-    /*
-    for (int i = 0; i < FLOW_N_REGS; i++) {
-        if (util_match->flow.regs[i]) {
-            match_set_reg(ofp15_match, i, util_match->flow.regs[i]);
-        }
-    }
-    
-    if (util_match->flow.pkt_mark != 0) {
-        match_set_pkt_mark(ofp15_match, util_match->flow.pkt_mark);
-    }
-   */
     match_set_in_port(ofp15_match, util_match->flow.in_port.ofp_port);
     
-     /*
-    if (util_match->flow.skb_priority != 0) {
-        match_set_skb_priority(ofp15_match, util_match->flow.skb_priority);
-    }
-
-    if (util_match->flow.dp_hash != 0) {
-        match_set_dp_hash(ofp15_match, util_match->flow.dp_hash);
-    }
-
-    if (util_match->flow.recirc_id != 0) {
-        match_set_recirc_id(ofp15_match, util_match->flow.recirc_id);
-    }
-
-
-    if (util_match->flow.ct_state!= 0) {
-        match_set_ct_state(ofp15_match, util_match->flow.ct_state);
-    }
-
-    if (util_match->flow.ct_zone != 0) {
-        match_set_ct_zone(ofp15_match, util_match->flow.ct_zone);
-    }
-
-    if (util_match->flow.ct_mark != 0) {
-        match_set_ct_mark(ofp15_match, util_match->flow.ct_mark);
-    }
- 
-    
-    if (util_match->flow.ct_label != 0) {
-        match_set_ct_label(ofp15_match, util_match->flow.ct_label);
-    }
-
-    if (util_match->flow.conj_id != 0) {
-        match_set_conj_id(ofp15_match, util_match->flow.conj_id);
-    }
-    
-    if (util_match->flow.actset_output != 0) {
-        match_set_actset_output(ofp15_match, util_match->flow.actset_output);
-    }
-    */
 
     if (!eth_addr_is_zero(util_match->flow.dl_src)) {
         match_set_dl_src(ofp15_match, util_match->flow.dl_src);
@@ -10689,17 +10600,6 @@ ofputil_match_to_ofp15(const struct match *util_match,struct match *ofp15_match)
     if (util_match->flow.dl_type != 0) {
        match_set_dl_type(ofp15_match, util_match->flow.dl_type);
     }
-    /*
-    if (util_match->flow.vlan_tci != 0) {
-        match_set_vlan_tci(ofp15_match, util_match->flow.vlan_tci);
-    }
-
-    for(int i=0; i<3 ;i++)
-    {
-    	if (util_match->flow.mpls_lse[i]) {
-        	match_set_mpls_lse(ofp15_match,i, util_match->flow.mpls_lse);
-    	}
-    }*/
 
     if (util_match->flow.nw_src != 0) {
         match_set_nw_src(ofp15_match, util_match->flow.nw_src);
@@ -10709,55 +10609,15 @@ ofputil_match_to_ofp15(const struct match *util_match,struct match *ofp15_match)
         match_set_nw_dst(ofp15_match, util_match->flow.nw_dst);
     }
     
-    /*
-    if (!in6_addr_is_zero(util_match->flow.ipv6_src)) {
-        match_set_ipv6_src(ofp15_match, &util_match->flow.ipv6_src);
-    }
-
-    if (!in6_addr_is_zero(util_match->flow.ipv6_dst)) {
-        match_set_ipv6_dst(ofp15_match, util_match->flow.ipv6_dst);
-    }
-    */
-    /*
-    if (util_match->flow.ipv6_label != 0) {
-        match_set_ipv6_label(ofp15_match, util_match->flow.ipv6_label);
-    }
-   
-     if (util_match->flow.nw_frag != 0) {
-        match_set_nw_frag(ofp15_match, util_match->flow.nw_frag);
-    }*/
 
      if (util_match->flow.nw_tos != 0) {
         match_set_nw_tos(ofp15_match, util_match->flow.nw_tos);
     }
-     /*
-     if (util_match->flow.nw_ttl != 0) {
-        match_set_nw_ttl(ofp15_match, util_match->flow.nw_ttl);
-    }*/
 
     if (util_match->flow.nw_proto != 0) {
         match_set_nw_proto(ofp15_match, util_match->flow.nw_proto);
     }
 
-    /* 
-    if (util_match->flow.nd_target != 0) {                                  // to introduce ipv6 address struct like ether_addr
-        match_set_nd_target(ofp15_match, util_match->flow.nd_target);
-    }
-    */
-    /*	
-    if (!eth_addr_is_zero(util_match->flow.arp_sha)) {
-        match_set_arp_sha(ofp15_match, util_match->flow.arp_sha);
-    }
-
-
-    if (!eth_addr_is_zero(util_match->flow.arp_tha)) {
-        match_set_arp_tha(ofp15_match, util_match->flow.arp_tha);
-    }
-
-    if (util_match->flow.tcp_flags != 0) {
-        match_set_tcp_flags(ofp15_match, util_match->flow.tcp_flags);
-    }
-    */
 
     if (util_match->flow.tp_src != 0) {
         match_set_tp_src(ofp15_match, util_match->flow.tp_src);
@@ -10766,43 +10626,17 @@ ofputil_match_to_ofp15(const struct match *util_match,struct match *ofp15_match)
     if (util_match->flow.tp_dst != 0) {
         match_set_tp_dst(ofp15_match, util_match->flow.tp_dst);
     }
-     /*
-    if (util_match->flow.igmp_group_ip4 != 0) {
-        match_set_igmp_group_ip4(ofp15_match, util_match->flow.igmp_group_ip4);
-    }
 
-    if (util_match->flow.next_base_layer != 0) {
-        match_set_next_base_layer(ofp15_match, util_match->flow.next_base_layer );
-    }
-
-
-    for (int i = 0; i < 4; i++) {
-        if (util_match->flow.pad1[i]) {
-            match_set_pad1(ofp15_match, i, util_match->flow.pad1[i]);
-        }
-    }*/
-
-   if (util_match->flow.pad1[0]) {
-            match_set_pad1(ofp15_match, 0, util_match->flow.pad1[0]);
-        }
+  // if (util_match->flow.pad1[0]) {
+  //          match_set_pad1(ofp15_match, 0, util_match->flow.pad1[0]);
+  //      }
 
 
    if (util_match->flow.pad2 != 0) {
             match_set_pad2(ofp15_match, util_match->flow.pad2);
         }
- /*   
-   if (util_match->flow.pad3 != 0) {
-            match_set_pad3(ofp15_match, util_match->flow.pad3);
-        }
-
-   for (int i=0; i<7; i++) 
-   {
-        if (util_match->flow.pad4[i]) 
-        {
-            match_set_pad4(ofp15_match, i, util_match->flow.pad4[i]);
-        }
-    }
-*/
  
-
+   if (util_match->flow.packet_type != 0) {
+            match_set_packet_type(ofp15_match, util_match->flow.packet_type);
+        }
 }

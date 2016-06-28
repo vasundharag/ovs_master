@@ -59,19 +59,9 @@ void match_set_reg_masked(struct match *, unsigned int reg_idx,
                           uint32_t value, uint32_t mask);
 
 void match_set_pad1(struct match *, unsigned int pad1_idx, uint8_t value);
-void match_set_pad1_masked(struct match *, unsigned int pad_idx,
-                          uint8_t value, uint8_t mask);
 
 void match_set_pad2(struct match *, uint8_t value);
-void match_set_pad2_masked(struct match *, uint8_t value, uint8_t mask);
 
-void match_set_pad3(struct match *, uint16_t value);
-void match_set_pad3_masked(struct match *, uint16_t value, uint16_t mask);
-
-
-void match_set_pad4(struct match *, unsigned int pad4_idx, uint8_t value);
-void match_set_pad4_masked(struct match *, unsigned int pad4_idx,
-                          uint8_t value, uint8_t mask);
 
 void match_set_xreg(struct match *, unsigned int xreg_idx, uint64_t value);
 void match_set_xreg_masked(struct match *, unsigned int xreg_idx,

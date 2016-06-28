@@ -1994,7 +1994,6 @@ ofctl_packet_out(struct ovs_cmdl_context *ctx)
 
 
 static void
-//ofctl_packet_out_metadata(int argc, char *argv[])
 ofctl_packet_out_metadata(struct ovs_cmdl_context *ctx)
 {
     enum ofputil_protocol protocol;
@@ -2021,8 +2020,8 @@ ofctl_packet_out_metadata(struct ovs_cmdl_context *ctx)
     if (error) {
         ovs_fatal(0, "%s", error);
     }
-    po.ofpacts = ofpacts.data; //ofpbuf_data(&ofpacts);
-    po.ofpacts_len = ofpacts.size;//ofpbuf_size(&ofpacts);
+    po.ofpacts = ofpacts.data; 
+    po.ofpacts_len = ofpacts.size;
     protocol = open_vconn(ctx->argv[1], &vconn);
     for (i = 6; i < ctx->argc; i++) 
     {
@@ -4134,8 +4133,7 @@ static const struct ovs_cmdl_command all_commands[] = {
     { "ofp-print", NULL, 1, 2, ofctl_ofp_print },
     { "encode-hello", NULL, 1, 1, ofctl_encode_hello },
     { "packet-out-metadata", "switch in_port metadata tun_id actions packet...",6, INT_MAX, ofctl_packet_out_metadata},
-    //{ "packet-out-metadata","switch in_port metadata tun_id actions packet",6,INT_MAX,ofctl_packet_out_metadata},
-    { NULL, NULL, 0, 0, NULL }
+    { NULL, NULL, 0, 0, NULL },
 };
 
 static const struct ovs_cmdl_command *get_all_commands(void)
